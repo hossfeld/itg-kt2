@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ITG News — topics, contributions, PDFs</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --paper: #fff;
+    --ink: #1c1c1a;
+    --muted: #5c5b55;
+    --line: #ddd9cf;
+    --accent: #0b3d6e;
+    --chip: #eceae3;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 "Segoe UI", system-ui, sans-serif; }
+  a { color: var(--accent); }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 28px 24px 20px;
+  }
+  header h1 { margin: 0 0 6px; font-size: 1.55rem; font-weight: 650; }
+  header p { margin: 0; max-width: 72ch; color: #d7e4f2; font-size: 0.95rem; }
+  header a { color: #fff; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 18px 64px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .toolbar input, .toolbar select {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+  }
+  .toolbar input { min-width: min(100%, 280px); flex: 1; }
+  .stats { color: var(--muted); font-size: 0.9rem; }
+  .years { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .years button {
+    font: inherit;
+    font-size: 0.85rem;
+    border: 1px solid var(--line);
+    background: var(--chip);
+    border-radius: 999px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .years button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .issue {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .issue h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 8px; }
+  .issue p { margin: 0 0 8px; }
+  .label { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+  .pdf {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff !important;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+  .pdf.missing { background: var(--chip); color: var(--muted) !important; pointer-events: none; }
+  footer { color: var(--muted); font-size: 0.82rem; margin-top: 28px; }
+  @media print {
+    header { background: #fff; color: #000; }
+    header p, header a { color: #333; }
+    .toolbar, .years { display: none; }
+    .issue { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>ITG News — topics and scientific contributions</h1>
+  <p>
+    Archive in website order (newest first), with public PDF links from
+    <a href="https://www.vde.com/de/itg/publikationen/news">vde.com/de/itg/publikationen/news</a>
+    (canonical: <a href="https://www.vde.com/itg-news">vde.com/itg-news</a>).
+    Self-contained local file; PDFs open on the VDE site.
+  </p>
+</header>
+<div class="wrap">
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Filter topic, contribution, date…">
+    <span class="stats" id="count"></span>
+  </div>
+  <div class="years" id="years"></div>
+  <div id="list"></div>
+
+  <footer>
+    Summaries from local PDFs and the VDE ITG News listing.
+    April 2015 is listed on the website without a download. Oktober 2014 is not on the site.
+  </footer>
+</div>
+<script>
+const BASE = "https://www.vde.com";
+const ISSUES = [
+  {year:2026,label:"Juli 2026",nr:"03/2026",topic:"Beyond Silicon — materials and devices beyond CMOS",contrib:"Low-temperature ALD of MgO/Ge-oxide films; energy-efficient compound semiconductors for AI/comms; Europe’s GaN IC pilot line; heterogeneous GaN–Si integration; compact InP resonant-tunneling THz components; carbon-nanotube devices and their missing applications.",pdf:"/resource/blob/2479048/c381874a19c3c00cc70adb933b6ad26d/itg-news-juli-2026-download-data.pdf"},
+  {year:2026,label:"April 2026",nr:"02/2026",topic:"Joint Communication & Sensing (ISAC) for 6G",contrib:"Cooperative multi-static ISAC clusters; specialized JCAS waveforms; 5G-Advanced/6G ISAC; 77 GHz airspace radar as ISAC pathfinder; drone surveillance via cellular sensing; fiber-optic sensing to raise telecom availability.",pdf:"/resource/blob/2459484/f715b8a3a3fa6e7c791f8cab698b5f18/itg-news-april-2026-download-data.pdf"},
+  {year:2026,label:"Januar 2026",nr:"01/2026",topic:"Resilience and IT security systems",contrib:"SUSTAINET-Advance: resilient/sustainable connectivity across comms and energy grids; trusted hardware; post-quantum crypto / QKD call to action; nano-electronics security; German–Japanese 6G reliability; resilience as a systems requirement.",pdf:"/resource/blob/2446058/df4611fdbd22bf8961f63c2f14bf3910/itg-news-januar-2026-download-data.pdf"},
+  {year:2025,label:"Oktober 2025",nr:"04/2025",topic:"Spin-offs from research (Ausgründungen)",contrib:"6G incubator launchhub42; case studies Black Semiconductor, IC4X, RooflineAI (edge AI), Syncorenize; transfer from invention to startup, plus VDE position on European microelectronics sovereignty.",pdf:"/resource/blob/2403722/2959b60458f762858a47a2c3b52642d2/itg-news-oktober-2025-download-data.pdf"},
+  {year:2025,label:"Juli 2025",nr:"03/2025",topic:"Energy-efficient data centers",contrib:"Data-center energy use, metrics and networking levers; guest paper CO2030 on transforming telecom central offices toward 2030.",pdf:"/resource/blob/2393072/1d9e983132a68e54ecbaa36848aecc55/itg-news-juli-2025-download-data.pdf"},
+  {year:2025,label:"April 2025",nr:"02/2025",topic:"Chip design — digital, analog, mixed-signal and photonics",contrib:"Generative AI for EDA productivity; coherent optical transceivers for the AI era; near-THz links with SiGe RFICs and radio-on-glass; LPWAN guest contribution.",pdf:"/resource/blob/2381806/ab153f179258df263afcafe06df04bb1/itg-news-april-2025-download-data.pdf"},
+  {year:2025,label:"Januar 2025",nr:"01/2025",topic:"70 years of VDE ITG — special historical issue",contrib:"From vacuum tubes to transistors, optoelectronics and later device physics; anniversary survey of ITG’s scientific field rather than a single research focus.",pdf:"/resource/blob/2362068/c677f8e14cd459721efea2cfbc533fc4/itg-news-januar-2025-download-data.pdf"},
+  {year:2024,label:"Oktober 2024",nr:"04/2024",topic:"Optical communication networks",contrib:"Access, transport, submarine and satellite optics; security/sovereignty of optical nets; 100G broadband ‘made in Germany’; side notes on radio, neuromorphic computing and medical tech.",pdf:"/resource/blob/2352654/6c0ad017f4666307f5bb5b4d3dd4c12f/itg-news-oktober-2024-download-data.pdf"},
+  {year:2024,label:"Juli 2024",nr:"03/2024",topic:"Memristor technology",contrib:"Memristive devices for flexible computing; ReRAM vs MRAM; suitable architectures; unified orchestration of compute, data and network.",pdf:"/resource/blob/2320814/26a3270784949e40357bf45d48d58a6d/itg-news-juli-2024-download-data.pdf"},
+  {year:2024,label:"April 2024",nr:"02/2024",topic:"Artificial intelligence",contrib:"Mathematical view of reliable AI (expressivity, generalization, explainability); AI-native mobile networks; impulse paper on more resilient power and communications grids.",pdf:"/resource/blob/2306436/137b7068d24f0e6bb80e9a8c5b2b56ba/itg-news-april-2024-download-data.pdf"},
+  {year:2024,label:"Januar 2024",nr:"01/2024",topic:"Sustainability as a challenge for 6G",contrib:"Future role of transport networks toward 6G (architecture, E2E orchestration); cybersecurity with disruption potential (Cyberagentur).",pdf:"/resource/blob/2290738/6a28ead8d0968de107ef092e3b973c7d/itg-news-januar-2024-download-data.pdf"},
+  {year:2023,label:"Oktober 2023",nr:"04/2023",topic:"Machine learning and AI in communication networks",contrib:"Inherent network intelligence vs. AI add-ons (3GPP Rel-18 QoS prediction); distributed learning at a virtualized edge for resilience; chatbot/dialogue-system challenge.",pdf:"/resource/blob/2275456/65c6510c2dfb2600a12e9695efb3eb93/itg-news-oktober-2023-download-data.pdf"},
+  {year:2023,label:"Juli 2023",nr:"03/2023",topic:"Energy efficiency",contrib:"Energy efficiency of ubiquitous video (shorts/streams); ICT sustainability with energy efficiency as the main lever.",pdf:"/resource/blob/2261048/c88757415937b60aa239614c286a2e38/itg-news-juli-2023-download-data.pdf"},
+  {year:2023,label:"April 2023",nr:"02/2023",topic:"Resilient communications technology",contrib:"Resilient Future Railway Mobile Communication System (FRMCS/5G failure points); ICT resilience in crises, including drone-based emergency networks (emergenCITY).",pdf:"/resource/blob/2241682/6b21c81a98e890901e247cb945219859/itg-news-april-2023-download-data.pdf"},
+  {year:2023,label:"Januar 2023",nr:"01/2023",topic:"XR/metaverse, Earth observation and space sustainability",contrib:"Technology vision 2030 / metaverse network requirements; TanDEM-X & Tandem-L 3D radar for climate monitoring; space-based solar power; mega-constellations; satellite reconnaissance for security.",pdf:"/resource/blob/2225128/f376710ade8e2d6d0d86f2a1f34bb212/itg-news-januar-2023-download-data.pdf"},
+  {year:2022,label:"Oktober 2022",nr:"04/2022",topic:"DFG priority programme / wireless communication technology",contrib:"DFG programme ‘Resilient Worlds’; chip design as strategic autonomy; timing-network attacks on critical infrastructure; 5G resilience when moving into the cloud.",pdf:"/resource/blob/2210510/34d646db10e8b0123b64473f713867d7/itg-news-oktober-2022-download-data.pdf"},
+  {year:2022,label:"Juli 2022",nr:"03/2022",topic:"Society news only (short pandemic-era issue)",contrib:"No scientific feature: privacy/trust workshop note, image-of-electrical-engineering study, obituaries and dates.",pdf:"/resource/blob/2190824/60a4cc7efcb8b648497c8450b9515c57/itg-news-juli-2022-download-data.pdf"},
+  {year:2022,label:"April 2022",nr:"02/2022",topic:"5G technology in industry",contrib:"5G Plug-and-Produce: integrating 5G with industrial Ethernet/TSN, including experimental validation.",pdf:"/resource/blob/2172372/63e8e2b86fcf7f85c443ef8011505188/itg-news-april-2022-data.pdf"},
+  {year:2022,label:"Januar 2022",nr:"01/2022",topic:"Resilient grids and 6G research",contrib:"Resilient power and communications networks; German 6G hubs (6G-life, Open6GHub, 6GEM, 6G-RIC) and Thinknet 6G.",pdf:"/resource/blob/2105850/fc0c860253a7b583b4d7d495344f41ec/itg-news-januar-2022--1--data.pdf"},
+  {year:2021,label:"Oktober 2021",nr:"04/2021",topic:"Wireless communication technology",contrib:"From sensor networks to ‘network as a sensor’ (joint comms & sensing); Hülsmeyer radar biography; broadband-rollout quality.",pdf:"/resource/blob/2090212/5dd4720dea8ba799ed05701d60ae7cdd/itg-news-oktober-2021-data.pdf"},
+  {year:2021,label:"Juli 2021",nr:"03/2021",topic:"Quantum communication / QKD",contrib:"Berlin OpenQKD testbed for quantum-safe links; DLR Quantum Space Operations Center; security in the quantum era; call for 6G experts.",pdf:"/resource/blob/2076906/c55bfd819adaec238f90736c74de0cf1/itg-news-juli-2021--1--data.pdf"},
+  {year:2021,label:"April 2021",nr:"02/2021",topic:"Communications technology & COVID-19; cloud",contrib:"Internet under pandemic load; COVID-era traffic change; molecular communication ‘from Shannon to Corona’; flexible cloud platforms; ITG papers on photonic–electronic integration, Hidden Electronics II, technological sovereignty.",pdf:"/resource/blob/2032800/1b5720f969ac0b0a62f980a230ad3e06/itg-news-april-2021-data.pdf"},
+  {year:2021,label:"Januar 2021",nr:"01/2021",topic:"Space communication networks",contrib:"Standards for optical space comms; AI for orbital–terrestrial networks as enabler of global wireless connectivity.",pdf:"/resource/blob/2010392/622b5b66392ff0e0ebab800a8054bf13/itg-news-januar-2021-data.pdf"},
+  {year:2020,label:"Juli / Oktober 2020",nr:"03–04/2020",topic:"Privacy & security, radar, 6G vision 2030",contrib:"Corona-App privacy; user-centric security engineering via behaviour simulation; smart-speaker privacy; privacy in speech interfaces; future radar system concepts; 6G key technologies and architecture for the 2030s.",pdf:"/resource/blob/1991012/07662bec66907573ab254c3d99394ec7/itg-news-juli-oktober-2020-data.pdf"},
+  {year:2020,label:"April 2020",nr:"02/2020",topic:"5G & Industry 4.0 — end-to-end QoS in industrial nets",contrib:"E2E QoS across wired industrial nets, cellular 5G and IT platforms; position paper on technological sovereignty.",pdf:"/resource/blob/1961942/f7fee5c87e1244a8d042bea5380ed76e/itg-news-april-2020-data.pdf"},
+  {year:2020,label:"Januar 2020",nr:"01/2020",topic:"5G at launch — what next?",contrib:"5G security architecture (3GPP vs LTE); reliable EMF measurements at massive-MIMO 5G base stations; technological sovereignty.",pdf:"/resource/blob/1937474/1bfedb494c510507af28571e548811b0/itg-news-januar-2020-pdf-data.pdf"},
+  {year:2019,label:"Oktober 2019",nr:"04/2019",topic:"Data sovereignty in industrial ecosystems",contrib:"Industrial data sovereignty; sensor/IoT aside; 5G for verticals and resilient energy/comms nets.",pdf:"/resource/blob/1901038/72f5a53f1335d310d5d82a80668b6cb6/itg-news-oktober-2019-data.pdf"},
+  {year:2019,label:"Juli 2019",nr:"03/2019",topic:"5G technology for industry",contrib:"5G NR for URLLC; 5G positioning from standards to market; industrial networking; German 5G spectrum auction recap; new quantum-technology colloquium.",pdf:"/resource/blob/1876262/8a47dc57a4293694da3518ae83fe4c6e/itg-news-juli-2019-data.pdf"},
+  {year:2019,label:"April 2019",nr:"02/2019",topic:"Edge cloud / serverless services",contrib:"Serverless computing paradigm (evolution, benefits, limits); flexible in-network edge architectures for the ‘Internet of Production’.",pdf:"/resource/blob/1852350/03b35f1105da1ebdfc1c272aaa685b68/april-2019-data.pdf"},
+  {year:2019,label:"Januar 2019",nr:"01/2019",topic:"Impact of AI (Technikfolgen)",contrib:"Opportunities and risks of AI in telecom networks (ops vs societal impact); quantum computing as next revolution vs security risk; NewSpace as ITG focus project.",pdf:"/resource/blob/1795358/edaba5b549cc8a63ea560b99b850f979/itg-news-01-2019-data.pdf"},
+  {year:2018,label:"Oktober 2018",nr:"04/2018",topic:"5G NewSpace — terrestrial 5G and satellites",contrib:"Small-satellite constellations vs OldSpace; complementary 5G–satellite cooperation and integration.",pdf:"/resource/blob/1769972/5d37f22627fca20dd785d841f4689dc5/itg-news-oktober-2018---download-data.pdf"},
+  {year:2018,label:"Juli 2018",nr:"03/2018",topic:"Open Internet in Germany",contrib:"Stock-take of the open Internet with policy/technical recommendations (net neutrality / openness).",pdf:"/resource/blob/1749590/1f772c7d6d0b440e5c74c4708a7d31a3/news-juli-2018-data.pdf"},
+  {year:2018,label:"April 2018",nr:"02/2018",topic:"Industrial Internet / TACNET 4.0",contrib:"Cognitive industrial Internet (Fraunhofer CIT); TACNET 4.0 ultra-low-latency industrial radio with open interfaces.",pdf:"/resource/blob/1706240/41a318b6e1d5242f1302565873fec0b2/news-2018-02-data.pdf"},
+  {year:2018,label:"Januar 2018",nr:"01/2018",topic:"Light fields and machine vision",contrib:"Light-field capture/applications (multi-camera); ‘beyond human vision’ machine seeing; standardization outlook.",pdf:"/resource/blob/1684818/f25594d11bd859fccfb70002753b3a77/itg--news-2018-01-data.pdf"},
+  {year:2017,label:"Oktober 2017",nr:"04/2017",topic:"5G technologies and verticals",contrib:"5G radio/network placement; Media & Entertainment and Industry 4.0 verticals; ‘fast care’ real-time healthcare.",pdf:"/resource/blob/1684800/05d18de0a7397e3028d1fd0f0f4509ef/itg-news-4-2017-data.pdf"},
+  {year:2017,label:"Juli 2017",nr:"03/2017",topic:"Localization, privacy and navigation",contrib:"Privacy-enhancing technologies for reactive location queries (PARADISE); navigation variants; UHF-RFID positioning; Industry 4.0 radio position paper.",pdf:"/resource/blob/1634998/5b9a772413d1510acc486fe9b024c2dd/itg-news-2017-3-download-akkoredeon-data.pdf"},
+  {year:2017,label:"April 2017",nr:"02/2017",topic:"Connected vehicles",contrib:"Networked HD map as a sensor for automated driving; evolution of cellular V2X (LTE-V2X research and standards).",pdf:"/resource/blob/1596872/e58468f7d3e485f915fb2ef90a4d2526/itg-news-2017-2-download-akkordeon-data.pdf"},
+  {year:2017,label:"Januar 2017",nr:"01/2017",topic:"5G spectrum administration",contrib:"Frequency-assignment procedures and IMT identifications toward WRC-19 for the fifth mobile generation.",pdf:"/resource/blob/1361704/b5f0c419f894ed930ae2f352e102afb1/itg-news-2017-1-download-akkordeon-data.pdf"},
+  {year:2016,label:"Oktober 2016",nr:"04/2016",topic:"Internet of Things",contrib:"Drone identification/localization; real-time analytics for industrial processes; IoT enablers (connectivity, sensors, business models); 5G networks for IoT.",pdf:"/resource/blob/857936/6cf11d606b82363f05dd8d1371678402/itg-news--2016-4-download-akkordeon-data.pdf"},
+  {year:2016,label:"Juli 2016",nr:"03/2016",topic:"Optical communication",contrib:"Visible-light ‘Internet from the lamp’; photonic networks, FTTH and optical satellite comms (ECOC 2016 preview).",pdf:"/resource/blob/859842/8e38a74c7824aadbb05d5026ef1f7f8b/itg-news--2016-3-download-akkordeon-data.pdf"},
+  {year:2016,label:"April 2016",nr:"02/2016",topic:"Where is the 5G network heading?",contrib:"5G-PPP research portfolio and work groups; 5G standardization path; LTE/5G TV distribution; ETG/ITG study on protection/automation in active distribution grids.",pdf:"/resource/blob/839600/e2a6d0f1270e3c8f253fb86a6d8f0b4e/itg-news--2016-2-download-akkordeon-data.pdf"},
+  {year:2016,label:"Januar 2016",nr:"01/2016",topic:"5G technologies for the tactile Internet (community issue)",contrib:"Mostly conferences. Scientific thread: 5G for tactile Internet and realistic acoustic environments for audiology.",pdf:"/resource/blob/839620/abfdd7b26e30f99c897864f92792f06f/itg-news--2016-1-download-akkordeon-data.pdf"},
+  {year:2015,label:"Oktober 2015",nr:"04/2015",topic:"Photonics, radar/SAR and radio-resource management",contrib:"Workshop reports on photonic components, image communication, radar/SAR and new RRM concepts (anticipation, cloud RAN, collaborative nets).",pdf:"/resource/blob/839636/279fbbc1f454a0965c80a6905fe34441/itg-news--2015-4-download-akkordeon-data.pdf"},
+  {year:2015,label:"Juli 2015",nr:"03/2015",topic:"Simulation in micro-/nanoelectronics",contrib:"Feature on the evolution of TCAD/simulation for micro- and nanoelectronics; surrounding reports on 5G, smart antennas, Industry 4.0 and ICMIM radar-for-mobility.",pdf:"/resource/blob/839670/74d56e63a6717463bd4514c29fa3519b/itg-news--2015-3-download-akkordeon-data.pdf"},
+  {year:2015,label:"April 2015",nr:"02/2015",topic:"5G as the next mobile-generation challenge",contrib:"Website listing only: broadband/net neutrality, 5G, SCC 2015, optical-component modelling, automation communications. No PDF on the VDE site.",pdf:null},
+  {year:2015,label:"Januar 2015",nr:"01/2015",topic:"NFV and SDN",contrib:"Research questions and use cases for virtual network functions (analysis, decomposition); 5G network visualization; THz radio systems.",pdf:"/resource/blob/839690/f3d58b19bf812d9adb4bb2ee2be177cf/itg-news--2015-1-download-akkordeon-data.pdf"},
+  {year:2014,label:"Juli 2014",nr:"03/2014",topic:"Imaging radar and ITS / optical comms (mixed issue)",contrib:"Imaging radar in the 21st century; intelligent transport systems and spectrum; optical mode multiplexing; circuit design/verification.",pdf:"/resource/blob/839698/adbdf1841f505f135022edb552741e1a/itg-news-2014-3-download-akkordeon-data.pdf"},
+  {year:2014,label:"April 2014",nr:"02/2014",topic:"5G PPP and mobile TV distribution",contrib:"EU 5G Public-Private Partnership in Horizon 2020; future of TV for mobile reception vs cellular; NFV/SDN in mobile networks.",pdf:"/resource/blob/839710/a1b930d421dd89cb20fdebb488e99718/itg-news-2014-2-download-akkordeon-data.pdf"},
+  {year:2014,label:"Januar 2014",nr:"01/2014",topic:"IT security and privacy",contrib:"Can ICT ever be absolutely secure?; IT security for Industrie 4.0 and embedded systems; navigation (GPS/GLONASS/BeiDou).",pdf:"/resource/blob/839732/a433ab598b24c38dbf2edb2bc2d076b5/itg-news-2014-1-download-akkordeon-data.pdf"},
+  {year:2013,label:"Oktober 2013",nr:"04/2013",topic:"Software-defined networking",contrib:"Making the Internet more flexible with SDN: principles, applications, benefits and challenges.",pdf:"/resource/blob/839774/750a279753b119aff0bf8d9231808bbd/itg-news-2013-4-download-akkordeon-data.pdf"},
+  {year:2013,label:"Juli 2013",nr:"03/2013",topic:"Millimetre-wave mobile radio?",contrib:"Cover question on mmWave cellular; 5G/multimedia, packaging, smart grids, circuit simulation, TV after HDTV.",pdf:"/resource/blob/839786/b836755859afcddc8c6dfcd5809d41c2/itg-news-2013-3-download-akkordeon-data.pdf"},
+  {year:2013,label:"April 2013",nr:"02/2013",topic:"ICT for the future energy grid; optical and heterogeneous nets",contrib:"Open optical networks (fibre as more than a pipe); heterogeneous nets (pico/femto cells, spectrum reuse) to raise capacity.",pdf:"/resource/blob/839806/dc14a1b92672c4bb95eb60013f82024e/itg-news-2013-2-download-akkordeon-data.pdf"},
+  {year:2013,label:"Januar 2013",nr:"01/2013",topic:"Missed the fibre connection? Broadband FTTH",contrib:"Fibre as future economic infrastructure; re-municipalisation of telecom; energy-economy of the future. Opening issue of the online archive.",pdf:"/resource/blob/839814/b94036c25648e91243d026f69e527510/itg-news-2013-1-download-akkordeon-data.pdf"}
+];
+
+const years = [...new Set(ISSUES.map(i => i.year))];
+let year = "all";
+const yearsEl = document.getElementById("years");
+const listEl = document.getElementById("list");
+const qEl = document.getElementById("q");
+const countEl = document.getElementById("count");
+
+function chip(label, value) {
+  const b = document.createElement("button");
+  b.textContent = label;
+  b.dataset.year = value;
+  b.onclick = () => { year = value; render(); };
+  return b;
+}
+yearsEl.appendChild(chip("All years", "all"));
+years.forEach(y => yearsEl.appendChild(chip(String(y), String(y))));
+
+function render() {
+  const q = qEl.value.trim().toLowerCase();
+  yearsEl.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.year === year));
+  const rows = ISSUES.filter(i => {
+    if (year !== "all" && String(i.year) !== year) return false;
+    if (!q) return true;
+    return (i.label + " " + i.nr + " " + i.topic + " " + i.contrib).toLowerCase().includes(q);
+  });
+  countEl.textContent = rows.length + " of " + ISSUES.length + " issues";
+  listEl.innerHTML = rows.map(i => {
+    const href = i.pdf ? BASE + i.pdf : "";
+    const pdf = i.pdf
+      ? `<a class="pdf" href="${href}" target="_blank" rel="noopener">Open public PDF</a>`
+      : `<span class="pdf missing">No PDF on website</span>`;
+    return `<article class="issue">
+      <h2>${i.label}</h2>
+      <div class="meta">${i.nr}</div>
+      <div class="label">Main topic</div>
+      <p>${i.topic}</p>
+      <div class="label">Main scientific contributions</div>
+      <p>${i.contrib}</p>
+      <div class="row">${pdf}</div>
+    </article>`;
+  }).join("");
+}
+qEl.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
