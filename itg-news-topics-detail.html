@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ITG News — issue explorer (articles &amp; details)</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --paper: #fff;
+    --ink: #1c1c1a;
+    --muted: #5c5b55;
+    --line: #ddd9cf;
+    --accent: #0b3d6e;
+    --chip: #eceae3;
+    --sel: #e7eef6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 "Segoe UI", system-ui, sans-serif; }
+  a { color: var(--accent); }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 22px 24px 16px;
+  }
+  header h1 { margin: 0 0 6px; font-size: 1.4rem; font-weight: 650; }
+  header p { margin: 0; max-width: 90ch; color: #d7e4f2; font-size: 0.92rem; }
+  header a { color: #fff; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 16px 16px 48px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .toolbar input {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    min-width: min(100%, 280px);
+    flex: 1;
+  }
+  .stats { color: var(--muted); font-size: 0.9rem; }
+  .years { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .years button {
+    font: inherit;
+    font-size: 0.82rem;
+    border: 1px solid var(--line);
+    background: var(--chip);
+    border-radius: 999px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .years button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+  .list-col {
+    max-height: calc(100vh - 210px);
+    overflow: auto;
+    padding-right: 4px;
+  }
+  .issue {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    font: inherit;
+    color: inherit;
+  }
+  .issue:hover { border-color: #c5c1b6; }
+  .issue.sel { background: var(--sel); border-color: var(--accent); }
+  .issue h2 { margin: 0 0 2px; font-size: 0.98rem; }
+  .meta { color: var(--muted); font-size: 0.8rem; }
+  .issue .topic { margin: 4px 0 0; font-size: 0.88rem; color: #333; }
+  .pane {
+    position: sticky;
+    top: 10px;
+    max-height: calc(100vh - 20px);
+    overflow: auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px 24px;
+  }
+  .pane h2 { margin: 0 0 4px; font-size: 1.25rem; }
+  .pane h3 {
+    margin: 18px 0 8px;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 4px;
+  }
+  .pane p { margin: 0 0 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 12px; }
+  .pdf {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff !important;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+  .pdf.missing { background: var(--chip); color: var(--muted) !important; pointer-events: none; }
+  .art {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: #fbfaf7;
+  }
+  .art .t { font-weight: 650; }
+  .art .a { color: var(--muted); font-size: 0.9rem; margin-top: 2px; }
+  .art .p { font-size: 0.78rem; color: #7a786f; margin-top: 2px; }
+  ul.plain { margin: 0; padding-left: 1.15rem; }
+  ul.plain li { margin-bottom: 4px; }
+  .empty { color: var(--muted); font-style: italic; }
+  footer { color: var(--muted); font-size: 0.82rem; margin-top: 18px; }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .list-col { max-height: none; }
+    .pane { position: static; max-height: none; }
+  }
+  @media print {
+    header { background: #fff; color: #000; }
+    header p, header a { color: #333; }
+    .toolbar, .years, .list-col { display: none; }
+    .layout { display: block; }
+    .pane { position: static; max-height: none; border: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>ITG News — issue explorer</h1>
+  <p>
+    Select an issue on the left. The pane on the right shows the cover topic, scientific article titles and authors,
+    plus interviews, start-ups, events, awards and other notes.
+    Public PDFs from
+    <a href="https://www.vde.com/de/itg/publikationen/news">vde.com/de/itg/publikationen/news</a>
+    (canonical <a href="https://www.vde.com/itg-news">vde.com/itg-news</a>).
+    Companion file: <code>itg-news-topics.html</code> (summaries only).
+  </p>
+</header>
+<div class="wrap">
+  <div class="toolbar">
+    <input id="q" type="search" placeholder="Filter issues, titles, authors…">
+    <span class="stats" id="count"></span>
+  </div>
+  <div class="years" id="years"></div>
+  <div class="layout">
+    <div class="list-col" id="list"></div>
+    <aside class="pane" id="pane" aria-live="polite"></aside>
+  </div>
+  <footer>
+    Article titles and bylines from the printed ITG News PDFs. Author lists follow the magazine (end-of-article blocks or bullet credits).
+    April 2015 is listed on the website without a download. Oktober 2014 is not on the site.
+  </footer>
+</div>
+<script>
+const BASE = "https://www.vde.com";
+const ISSUES = [
+  {
+    "year": 2026,
+    "label": "Juli 2026",
+    "nr": "03/2026",
+    "topic": "Beyond Silicon — materials and devices beyond CMOS",
+    "contrib": "Low-temperature ALD of MgO/Ge-oxide films; energy-efficient compound semiconductors for AI/comms; Europe’s GaN IC pilot line; heterogeneous GaN–Si integration; compact InP resonant-tunneling THz components; carbon-nanotube devices and their missing applications.",
+    "pdf": "/resource/blob/2479048/c381874a19c3c00cc70adb933b6ad26d/itg-news-juli-2026-download-data.pdf",
+    "id": "i0",
+    "pages": 48,
+    "editorial": "Cover theme Beyond Silicon: materials, processes and applications beyond silicon CMOS.",
+    "interview": {
+      "title": "Drei Fragen an … Prof. Dr. Karl Leo",
+      "person": "Prof. Dr. Karl Leo",
+      "note": "Interview on materials and devices beyond silicon CMOS."
+    },
+    "articles": [
+      {
+        "title": "Pioneering Low-Temperature Atomic Layer Deposition Breakthroughs in Magnesium Oxide and Germanium Oxide Thin Films",
+        "authors": "A. Devi, Leibniz Institute for Solid State and Materials Research (IFW Dresden)",
+        "pages": "9–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Neue Halbleitermaterialien für energieeffiziente KI- und Kommunikationssysteme",
+        "authors": "V. Krozer, Goethe-Universität Frankfurt; O. Hilt, H. Yacoub, P. Immerz, A. Wentzel, P. Scheele, Ferdinand-Braun-Institut, Berlin",
+        "pages": "12–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Europas Pilotlinie für Galliumnitrid-ICs",
+        "authors": "P. Neininger (lead), P. Brückner, T. Zieciak, S. Chartier, R. Quay, P. Merkert, Fraunhofer IAF, Freiburg",
+        "pages": "14–17",
+        "kind": "scientific"
+      },
+      {
+        "title": "GaN und Silizium — Heterogene Integration für die nächste Generation der Mikroelektronik",
+        "authors": "A. Waag, TU Braunschweig (IHT); V. Issakov, TU Braunschweig (CMOS); B. Wicht, Leibniz Universität Hannover",
+        "pages": "18–21",
+        "kind": "scientific"
+      },
+      {
+        "title": "Kompakte und effiziente elektronische THz-Komponenten basierend auf Indiumphosphid-Resonanztunneldioden",
+        "authors": "N. Weimann, Universität Duisburg-Essen",
+        "pages": "22–25",
+        "kind": "scientific"
+      },
+      {
+        "title": "Carbon Nanotubes: Hype in der Nanotechnologie! Doch wo bleiben die Anwendungen?",
+        "authors": "Column (Zum Nachdenken & Mitreden)",
+        "pages": "26–27",
+        "kind": "column"
+      },
+      {
+        "title": "Normen für den Glasfaserausbau — Wie die VDE Leitlinie 0800-730 dem Glasfaserausbau endlich Schwung gibt",
+        "authors": "T. Sentko, DKE / VDE",
+        "pages": "28",
+        "kind": "committee"
+      }
+    ],
+    "startups": [
+      {
+        "title": "Deep Tech aus Berlin für die Quantentechnologien der Zukunft (Rydberg Photonics)",
+        "authors": "G. Tränkle, A. Wicht, M. Krutzik"
+      },
+      {
+        "title": "Von der TU Darmstadt zur Industrie: etalytics und Energieeffizienz",
+        "authors": "N. Panten, CEO etalytics"
+      },
+      {
+        "title": "Wie Gretchen AI Unternehmen gegen KI-Fälschungen wappnet",
+        "authors": "T. Polzehl, J. Tesch, Gretchen AI, Berlin"
+      },
+      {
+        "title": "Mit Licht rechnen: photonisches Computing (Q.ANT)",
+        "authors": "M. Förtsch, Gründer und CEO Q.ANT, Stuttgart"
+      }
+    ],
+    "events": [
+      "1st ITG Future Forum on AI-powered Networks and Networking for AI — 25.11.2026, Fraunhofer HHI, Berlin",
+      "VDE Hauptstadtforum 2026 / 150 Jahre Telefon — 24.11.2026, BBAW, Berlin",
+      "ITG Mitgliederversammlung 2026 — 24.11.2026, Berlin",
+      "Reports: DEWICOMM 2026; GeMiC 2026 (KIT); MaLeNe 2026; 29. MBMV-Workshop; TuZ 2026"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Prof. Dr.-Ing. Jörg Eberspächer (V. Schanz, D. Dudek)",
+      "Prof. Dr.-Ing. Dieter Seitzer (R. Weigel, FAU)",
+      "Prof. Dr.-Ing. Wolfgang Koch (W. Gerstacker, R. Schober, C. Stierstorfer)"
+    ],
+    "notes": [
+      "Board election for the term January 2027 – December 2029 (vde.com/itgwahl26).",
+      "New speaker of Fachgruppe KT 3.1: Dr.-Ing. André Richter, VPIphotonics, Berlin."
+    ]
+  },
+  {
+    "year": 2026,
+    "label": "April 2026",
+    "nr": "02/2026",
+    "topic": "Joint Communication & Sensing (ISAC) for 6G",
+    "contrib": "Cooperative multi-static ISAC clusters; specialized JCAS waveforms; 5G-Advanced/6G ISAC; 77 GHz airspace radar as ISAC pathfinder; drone surveillance via cellular sensing; fiber-optic sensing to raise telecom availability.",
+    "pdf": "/resource/blob/2459484/f715b8a3a3fa6e7c791f8cab698b5f18/itg-news-april-2026-download-data.pdf",
+    "id": "i1",
+    "pages": 28,
+    "editorial": "Cover theme Joint Communication & Sensing (JCAS / ISAC) for 6G.",
+    "interview": {
+      "title": "Drei Fragen an … Alexander Pabst",
+      "person": "Alexander Pabst, Rohde & Schwarz",
+      "note": "Industry view on JCAS/ISAC."
+    },
+    "articles": [
+      {
+        "title": "Die Integration von Mobilkommunikation und Sensorik – eine vielversprechende Symbiose",
+        "authors": "Prof. Dr.-Ing. habil. Reiner Thomä, TU Ilmenau; Jun.-Prof. Dr.-Ing. Thomas Dallmann, TU Ilmenau; Prof. Dr.-Ing. Giovanni Del Galdo, FAU Erlangen-Nürnberg; Prof. Dr.-Ing. Peter Knott, RWTH Aachen; M.Sc. Abdelrahman Elgamal, RWTH Aachen; Dr.-Ing. Dominik Neudert-Schulz, TU Ilmenau; Dr.-Ing. Sebastian Semper, TU Ilmenau",
+        "pages": "6–8",
+        "kind": "scientific"
+      },
+      {
+        "title": "Beyond Universal Waveforms: Specialization and Coexistence in JCAS Systems",
+        "authors": "Dr. Aitor Correas Serrano; Dr. Maria A. González Huici; Prof. Dr.-Ing. Stefan Brüggenwirth, Fraunhofer FHR",
+        "pages": "9–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Integrated Sensing and Communication for 5G-A / 6G and beyond",
+        "authors": "Dr.-Ing. Thorsten Wild; Dr.-Ing. Artjom Grudnitsky; Dr.-Ing. Silvio Mandelli; Dr.-Ing. Junqing Guan; Dr.-Ing. Marcus Henninger; Dr.-Ing. Stephan Saur; Dr.-Ing. Mark Doll",
+        "pages": "11–14",
+        "kind": "scientific"
+      },
+      {
+        "title": "Die Renaissance des Radars: Flächendeckende Luftraumüberwachung im 77-GHz-Band als Wegbereiter für 6G ISAC",
+        "authors": "Dr.-Ing. Volker Aue; Dr.-Ing. Albrecht Fehske; Dr.-Ing. Ralf Irmer; Prof. Dr.-Ing. Gerhard Fettweis",
+        "pages": "15–16",
+        "kind": "scientific"
+      },
+      {
+        "title": "Drohnenaufklärung mit Mobilfunktechnologie: Flächendeckende Lagebilder für den unteren Luftraum",
+        "authors": "Prof. Dr.-Ing. habil. Reiner Thomä (and co-authors as printed)",
+        "pages": "17–19",
+        "kind": "scientific"
+      },
+      {
+        "title": "Verbesserte Verfügbarkeit von Telekommunikationsnetzen durch Integration faseroptischer Sensorik",
+        "authors": "Dr.-Ing. André Sandmann; Dr. Lutz Rapp; Dr.-Ing. André Richter",
+        "pages": "20–21",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [
+      {
+        "title": "Durchstarter: LUBIS EDA",
+        "authors": "Dr. Tobias Ludwig"
+      }
+    ],
+    "events": [
+      "bits, bonding, bassline – festival der elektronik ’26",
+      "Photonische Netze / market-trend exchange",
+      "Resiliente Antennensysteme für sichere Netze der Zukunft"
+    ],
+    "awards": [
+      "Congratulations: Prof. Dr.-Ing. Robert Weigel"
+    ],
+    "obituaries": [
+      "Prof. Dr.-Ing. Hans-Georg Musmann"
+    ],
+    "notes": [
+      "Call to elect the ITG board.",
+      "Note on upcoming magazine issues.",
+      "Column Zum Nachdenken & Mitreden: Dr.-Ing. Damian Dudek and Prof. Dr.-Ing. Robert Weigel.",
+      "VDE ITG Preise 2026 listed at the back of the issue."
+    ]
+  },
+  {
+    "year": 2026,
+    "label": "Januar 2026",
+    "nr": "01/2026",
+    "topic": "Resilience and IT security systems",
+    "contrib": "SUSTAINET-Advance: resilient/sustainable connectivity across comms and energy grids; trusted hardware; post-quantum crypto / QKD call to action; nano-electronics security; German–Japanese 6G reliability; resilience as a systems requirement.",
+    "pdf": "/resource/blob/2446058/df4611fdbd22bf8961f63c2f14bf3910/itg-news-januar-2026-download-data.pdf",
+    "id": "i2",
+    "pages": 32,
+    "editorial": "Cover theme resilience and IT-security systems.",
+    "interview": {
+      "title": "Drei Fragen an … Prof. Dr. Dirk Heckmann",
+      "person": "Prof. Dr. Dirk Heckmann, TUM",
+      "note": "Legal / societal view of IT security and resilience."
+    },
+    "articles": [
+      {
+        "title": "SUSTAINET-Advance: Resiliente und nachhaltige Konnektivität für Unternehmen, Kommunikations- und Energienetze",
+        "authors": "Prof. Dr. Tobias Hossfeld, Universität Würzburg; Prof. Dr.-Ing. habil. Carmen Mas Machuca, Universität der Bundeswehr München; PD Dr.-Ing. habil. Ronald Romero Reyes, TU Chemnitz; Dr. David Hock, Infosim, Würzburg; Dr.-Ing. Achim Autenrieth, Adtran Networks SE",
+        "pages": "6–8",
+        "kind": "scientific"
+      },
+      {
+        "title": "Resilienz und IT-Sicherheit brauchen vertrauenswürdige Hardware",
+        "authors": "Dr.-Ing. Sebastian Ertel; Dr.-Ing. Stefan Köpsell; Dr.-Ing. Michael Raitza; Dr.-Ing. Michael Roitzsch",
+        "pages": "9–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Bedrohung verschlüsselter Kommunikation durch Quantencomputer / Quantensicherheit — Call to Action",
+        "authors": "Dr. Helmut Grießer; Dr. Ulrich Seyfarth",
+        "pages": "12–15",
+        "kind": "scientific"
+      },
+      {
+        "title": "Nano Security: Von Nanoelektronik zu sicheren Systemen",
+        "authors": "Prof. Dr. Ilia Polian; Dr. Nan Du; Prof. Dr. Tim Güneysu; Prof. Dr. Stefan Katzenbeisser; Prof. Dr. Jean-Pierre Seifert",
+        "pages": "16–18",
+        "kind": "scientific"
+      },
+      {
+        "title": "Deutsch-Japanische Kooperation für die Erforschung zuverlässiger 6G-Kommunikationsnetze",
+        "authors": "Prof. Dr.-Ing. Christian Wietfeld; Prof. Dr.-Ing. Wolfgang Kellerer; Prof. Dr.-Ing. Frank Fitzek (6G-life)",
+        "pages": "18–19",
+        "kind": "scientific"
+      },
+      {
+        "title": "Kein System ohne Brandschutz – Resilienz als neue Pflicht an der Schnittstelle moderner IT-Systeme",
+        "authors": "As printed in the issue",
+        "pages": "20–21",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [
+      {
+        "title": "Durchstarter: Balluff",
+        "authors": "Prof. Dr.-Ing. Mark Eberspächer; Robert Tilch"
+      }
+    ],
+    "events": [
+      "Die Zukunft der Netze: Intelligent. Effizient. Resilient. Innovativ.",
+      "WueWoWAS’25",
+      "Quantentechnologie im Kaufregal?"
+    ],
+    "awards": [
+      "Congratulations: Prof. Dr.-Ing. Hans Schotten (60th birthday)",
+      "Congratulations: Prof. Dr.-Ing. Jörg Eberspächer",
+      "Johann-Philipp-Reis-Preis 2025: Prof. Dr.-Ing. Georg Rademacher (new optical fibres)",
+      "VDE ITG prizes ceremony"
+    ],
+    "obituaries": [],
+    "notes": [
+      "bits, bonding, bassline – festival der elektronik 2026 announcement."
+    ]
+  },
+  {
+    "year": 2025,
+    "label": "Oktober 2025",
+    "nr": "04/2025",
+    "topic": "Spin-offs from research (Ausgründungen)",
+    "contrib": "6G incubator launchhub42; case studies Black Semiconductor, IC4X, RooflineAI (edge AI), Syncorenize; transfer from invention to startup, plus VDE position on European microelectronics sovereignty.",
+    "pdf": "/resource/blob/2403722/2959b60458f762858a47a2c3b52642d2/itg-news-oktober-2025-download-data.pdf",
+    "id": "i3",
+    "pages": 24,
+    "editorial": "Cover theme spin-offs / Ausgründungen from research.",
+    "interview": {
+      "title": "Drei Fragen an … Prof. Dr. Tanja Schultz",
+      "person": "Prof. Dr. Tanja Schultz",
+      "note": "Transfer from research to start-ups."
+    },
+    "articles": [
+      {
+        "title": "launchhub42 – Inkubator für 6G-Start-ups mit Strahlkraft",
+        "authors": "As printed (incubator portrait)",
+        "pages": "5–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Von der Forschung zur Ausgründung: Der Weg von Black Semiconductor",
+        "authors": "Prof. Dr. Max Lemme, AMO GmbH; Dr. Daniel Schall",
+        "pages": "8–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "IC4X GmbH – Integrated Circuits fo(u)r Everyone",
+        "authors": "Dr.-Ing. Marcel Runge; Prof. Dr.-Ing. Friedel Gerfers",
+        "pages": "10–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "RooflineAI: Ausgründung der RWTH Aachen baut das europäische Edge-AI-Ökosystem",
+        "authors": "Dr. Thomas Zimmermann (and co-authors as printed)",
+        "pages": "12",
+        "kind": "scientific"
+      },
+      {
+        "title": "Ausgründung zwischen Forschung und Praxis – mein Weg mit der Syncorenize GmbH",
+        "authors": "Dr.-Ing. Moritz Joseph (as printed)",
+        "pages": "13",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "VDE Hauptstadtforum 2025 with ITG prizes and honorary colloquium",
+      "5G solutions and 6G outlook exchange",
+      "Summer School on Video Coding and Processing (10th anniversary)",
+      "Hands-on summer school on coherent optical communication, Berlin",
+      "German 6G programme networking event"
+    ],
+    "awards": [
+      "ARD/ZDF Förderpreis „Frauen + Medientechnologie“"
+    ],
+    "obituaries": [
+      "Prof. Dr.-Ing. Friedrich Landstorfer",
+      "Prof. Dr.-Ing. Gerhard Krump (5 July 2025)"
+    ],
+    "notes": [
+      "VDE position paper: Europe must secure sovereignty in microelectronics.",
+      "Honorary mention of Dr.-Ing. Volker Ziegler.",
+      "Column Zum Nachdenken & Mitreden (Damian Dudek, Matthias Wirth)."
+    ]
+  },
+  {
+    "year": 2025,
+    "label": "Juli 2025",
+    "nr": "03/2025",
+    "topic": "Energy-efficient data centers",
+    "contrib": "Data-center energy use, metrics and networking levers; guest paper CO2030 on transforming telecom central offices toward 2030.",
+    "pdf": "/resource/blob/2393072/1d9e983132a68e54ecbaa36848aecc55/itg-news-juli-2025-download-data.pdf",
+    "id": "i4",
+    "pages": 24,
+    "editorial": "Cover theme energy-efficient data centres.",
+    "interview": {
+      "title": "Drei Fragen an … Prof. Dr. Vadim Issakov",
+      "person": "Prof. Dr. Vadim Issakov",
+      "note": "Energy and electronics context for data centres / RF."
+    },
+    "articles": [
+      {
+        "title": "Energy Use in Data Centers: Current Figures and Trends",
+        "authors": "Prof. Dr. Tobias Hossfeld (and co-authors as printed)",
+        "pages": "6–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Project CO2030: Strategic Transformation of Telecommunication Sites Toward 2030",
+        "authors": "Dr.-Ing. Andreas Gladisch",
+        "pages": "14–15",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "VDE Hauptstadtforum 2025 / ITG prizes / honorary colloquium",
+      "GeMiC in Dresden (Silicon Saxony)",
+      "TuZ workshop, Berlin-Köpenick",
+      "Photonic Networks conference",
+      "SCC 2025 at KIT’s 200th anniversary",
+      "28. MBMV-Workshop 2025, Warnemünde"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Column Zum Nachdenken & Mitreden."
+    ]
+  },
+  {
+    "year": 2025,
+    "label": "April 2025",
+    "nr": "02/2025",
+    "topic": "Chip design — digital, analog, mixed-signal and photonics",
+    "contrib": "Generative AI for EDA productivity; coherent optical transceivers for the AI era; near-THz links with SiGe RFICs and radio-on-glass; LPWAN guest contribution.",
+    "pdf": "/resource/blob/2381806/ab153f179258df263afcafe06df04bb1/itg-news-april-2025-download-data.pdf",
+    "id": "i5",
+    "pages": 28,
+    "editorial": "Cover theme chip design — digital, analog, mixed-signal and photonics.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Improving Chip Design Productivity with Generative AI Tools",
+        "authors": "Dr.-Ing. Lukas Krupp; Prof. Dr.-Ing. Norbert Wehn",
+        "pages": "6–8",
+        "kind": "scientific"
+      },
+      {
+        "title": "Coherent Optical Transceivers for the AI Era: Which Modulator Technology Will Dominate?",
+        "authors": "Dr. Despoina Petousi",
+        "pages": "9–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Enabling Commercial Near-THz Communication Systems Using SiGe RFICs and Radio-on-Glass Integration",
+        "authors": "As printed in the issue",
+        "pages": "12–15",
+        "kind": "scientific"
+      },
+      {
+        "title": "mioty® – LPWAN-Technologie für Smart-Metering- und Smart-City-Anwendungen",
+        "authors": "Dipl.-Ing. Josef Bernhard",
+        "pages": "16–18",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Kommunikationstechnik in Köln",
+      "Non-terrestrial networks in the 6G era",
+      "Vacuum electronics",
+      "Optical communications exchange",
+      "Trusted systems scientific projects",
+      "German electronics business festival",
+      "Innovationsforum Pflege / CARE REGIO",
+      "AKML lecture series on AI in medical electronics"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Priv.-Doz. Dr.-Ing. habil. Ulrich Tietze"
+    ],
+    "notes": [
+      "VDE ITG position paper on large language models.",
+      "Column: Dr.-Ing. Damian Dudek.",
+      "FA chair change: PD Dr.-Ing. Mathias Wien succeeds Prof. Dr.-Ing. André Kaup."
+    ]
+  },
+  {
+    "year": 2025,
+    "label": "Januar 2025",
+    "nr": "01/2025",
+    "topic": "70 years of VDE ITG — special historical issue",
+    "contrib": "From vacuum tubes to transistors, optoelectronics and later device physics; anniversary survey of ITG’s scientific field rather than a single research focus.",
+    "pdf": "/resource/blob/2362068/c677f8e14cd459721efea2cfbc533fc4/itg-news-januar-2025-download-data.pdf",
+    "id": "i6",
+    "pages": 48,
+    "editorial": "Special 70-year anniversary issue: historical interviews rather than a single research dossier.",
+    "interview": {
+      "title": "Anniversary conversations across ITG’s scientific field",
+      "person": "Multiple interviewees",
+      "note": "From vacuum tubes to transistors, fibre, radar, MP3/GSM, 4G/5G virtualization, and AI."
+    },
+    "articles": [
+      {
+        "title": "Von der Elektronenröhre zum Transistor",
+        "authors": "Prof. Dr.-Ing. Wolfgang Mathis",
+        "pages": "2–5",
+        "kind": "scientific"
+      },
+      {
+        "title": "Neue physikalische Technologien für Bauelemente und System-Ideen",
+        "authors": "As printed (historical feature)",
+        "pages": "6–14",
+        "kind": "scientific"
+      },
+      {
+        "title": "„Die niedrig dämpfende Glasfaser war der Durchbruch“",
+        "authors": "Interview as printed (optical communications history)",
+        "pages": "15–17",
+        "kind": "scientific"
+      },
+      {
+        "title": "„Mit unserer Entwicklung waren wir im Markt führend“ / design and verification",
+        "authors": "As printed",
+        "pages": "18–20",
+        "kind": "scientific"
+      },
+      {
+        "title": "„Wir haben das weltweit erste komplette Halbleiter-Automotive-Radar entwickelt“",
+        "authors": "Prof. Dr.-Ing. Werner Wiesbeck",
+        "pages": "21–23",
+        "kind": "scientific"
+      },
+      {
+        "title": "Audio coding, DAB and MP3",
+        "authors": "As printed",
+        "pages": "24–26",
+        "kind": "scientific"
+      },
+      {
+        "title": "„Durch die Roaming-Funktion wurde GSM zum Verkaufsschlager“",
+        "authors": "As printed",
+        "pages": "27–29",
+        "kind": "scientific"
+      },
+      {
+        "title": "Optical communications cost and photodiodes",
+        "authors": "As printed",
+        "pages": "30–32",
+        "kind": "scientific"
+      },
+      {
+        "title": "„Der Schritt von 3G zu 4G war disruptiv“",
+        "authors": "As printed",
+        "pages": "33–35",
+        "kind": "scientific"
+      },
+      {
+        "title": "„Aus der Cloud ist die Virtualisierung in die Netze gewandert“",
+        "authors": "As printed",
+        "pages": "36–38",
+        "kind": "scientific"
+      },
+      {
+        "title": "„Wir stehen am Beginn einer neuen industriellen Revolution“",
+        "authors": "Prof. Dr. Gitta Kutyniok",
+        "pages": "39–42",
+        "kind": "scientific"
+      },
+      {
+        "title": "Information Technology Vision 2035",
+        "authors": "As printed",
+        "pages": "43–47",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Lists the 2025–2026 ITG board at the back (Bauch, Brüggenwirth, Fingscheidt, Haase, Hamm, Heckmann, Hossfeld, Karl, Kellerer, Klauer, Mannweiler, Polian, Schmeck, Schuster, Tönjes, Weitsch, Ziegler, and others as printed)."
+    ]
+  },
+  {
+    "year": 2024,
+    "label": "Oktober 2024",
+    "nr": "04/2024",
+    "topic": "Optical communication networks",
+    "contrib": "Access, transport, submarine and satellite optics; security/sovereignty of optical nets; 100G broadband ‘made in Germany’; side notes on radio, neuromorphic computing and medical tech.",
+    "pdf": "/resource/blob/2352654/6c0ad017f4666307f5bb5b4d3dd4c12f/itg-news-oktober-2024-download-data.pdf",
+    "id": "i7",
+    "pages": 20,
+    "editorial": "Cover theme optical communication networks.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Research and developments in optical communication networks",
+        "authors": "Dr. Janis Nötzel; Prof. Dr.-Ing. Jürgen Czarske (and co-authors as printed)",
+        "pages": "5–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Broadband Speeds – To Infinity and Beyond",
+        "authors": "Dr. Jochen Maes",
+        "pages": "8–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Energieeffizienz von Glasfasernetzen",
+        "authors": "Prof. Dr.-Ing. Kristof Obermann",
+        "pages": "10–12",
+        "kind": "scientific"
+      },
+      {
+        "title": "Neue VDE Spezifikation zu NMC-Technologien",
+        "authors": "As printed",
+        "pages": "13",
+        "kind": "committee"
+      },
+      {
+        "title": "SEE-Impact-Studie: Mehr Nachhaltigkeit in Gesundheitswirtschaft und E-Health",
+        "authors": "As printed",
+        "pages": "14–15",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "VDE Hauptstadtforum 2024 & 70 Jahre VDE ITG",
+      "Mobile communications technologies and applications",
+      "Sustainability of future communications networks"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Dr.-Ing. Jork Bretting (88, 23 June 2024, Ulm)",
+      "Dr. rer. nat. Günter Kornfeld (as printed)"
+    ],
+    "notes": [
+      "Column Zum Nachdenken & Mitreden."
+    ]
+  },
+  {
+    "year": 2024,
+    "label": "Juli 2024",
+    "nr": "03/2024",
+    "topic": "Memristor technology",
+    "contrib": "Memristive devices for flexible computing; ReRAM vs MRAM; suitable architectures; unified orchestration of compute, data and network.",
+    "pdf": "/resource/blob/2320814/26a3270784949e40357bf45d48d58a6d/itg-news-juli-2024-download-data.pdf",
+    "id": "i8",
+    "pages": 24,
+    "editorial": "Cover theme memristor technology; 70 years VDE ITG.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Memristive Devices for flexible Computing Architectures",
+        "authors": "Prof. Dr.-Ing. Dietmar Fey",
+        "pages": "4–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Unified Networking Experience Technology: Orchestrating compute, data and network elements across heterogeneous environments",
+        "authors": "Dr. Azimeh Sefidcon",
+        "pages": "10–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Das EROAD-Mobilitätskonzept",
+        "authors": "As printed",
+        "pages": "12–13",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "SAR remote sensing",
+      "GeMiC in Duisburg (microwave to THz)",
+      "TuZ workshop premiere in Darmstadt",
+      "Photonics packaging",
+      "From space to Earth"
+    ],
+    "awards": [
+      "80th birthday of Prof. Dr.-Ing. Volkert Hansen (tributes by T. Eibert, M. Clemens, H. Aroudaki)"
+    ],
+    "obituaries": [
+      "Prof. Dr.-Ing. Uwe-Carsten Fiebig (9 May 2024, age 61)",
+      "Prof. Dr. rer. pol. Matthias Jarke (21 March 2024, age 71)"
+    ],
+    "notes": [
+      "Personalia: Prof. Dr.-Ing. Stefan Schulte & Prof. Dr.-Ing. Amr Rizk.",
+      "FBH leadership handover: Patrick Scheele succeeds Günther Tränkle."
+    ]
+  },
+  {
+    "year": 2024,
+    "label": "April 2024",
+    "nr": "02/2024",
+    "topic": "Artificial intelligence",
+    "contrib": "Mathematical view of reliable AI (expressivity, generalization, explainability); AI-native mobile networks; impulse paper on more resilient power and communications grids.",
+    "pdf": "/resource/blob/2306436/137b7068d24f0e6bb80e9a8c5b2b56ba/itg-news-april-2024-download-data.pdf",
+    "id": "i9",
+    "pages": 20,
+    "editorial": "Cover theme artificial intelligence; 70 Jahre ITG VDE – Zukunft voraus.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Ein mathematischer Blick auf zuverlässige künstliche Intelligenz",
+        "authors": "Prof. Gitta Kutyniok",
+        "pages": "6–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Towards the AI-native mobile network",
+        "authors": "Dr. Karim Sahyoun (and co-authors as printed)",
+        "pages": "10–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Impulse paper: more resilient power and communications grids",
+        "authors": "ITG impulse paper (as printed p. 5)",
+        "pages": "5",
+        "kind": "committee"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "6G, quantum networks and holographic communication",
+      "FA HF 2 „Funksysteme“ in Berlin: Herausforderung 6G (T. Hossfeld, W. Kellerer, J. Sachs)",
+      "SOS – Rettet Technik die Medizin?"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Prof. Dr.-Ing. Peter Noll (16 February 2024, age 87)"
+    ],
+    "notes": [
+      "New FA chairs: Tim Fingscheidt, Rainer Martin, Dorothea Kolossa, Tobias Hossfeld, Wolfgang Kellerer.",
+      "New chair Prof. Dr.-Ing. Maria Dolores Pérez Guirao; Dipl.-Ing. Christoph Wöste.",
+      "Column Zum Nachdenken & Mitreden."
+    ]
+  },
+  {
+    "year": 2024,
+    "label": "Januar 2024",
+    "nr": "01/2024",
+    "topic": "Sustainability as a challenge for 6G",
+    "contrib": "Future role of transport networks toward 6G (architecture, E2E orchestration); cybersecurity with disruption potential (Cyberagentur).",
+    "pdf": "/resource/blob/2290738/6a28ead8d0968de107ef092e3b973c7d/itg-news-januar-2024-download-data.pdf",
+    "id": "i10",
+    "pages": 20,
+    "editorial": "Cover theme sustainability as a challenge for 6G; new ITG board 2024–2026.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "The future Role of Transport Networks towards 6G",
+        "authors": "Dr.-Ing. Jörg-Peter Elbers (and co-authors as printed)",
+        "pages": "6–10",
+        "kind": "scientific"
+      },
+      {
+        "title": "Cybersicherheit der Zukunft mit Disruptionspotenzial",
+        "authors": "As printed (Cyberagentur feature)",
+        "pages": "11",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Wo Wissenschaft auf Praxis trifft",
+      "„Waves beyond Walls“ microwave summit, Berlin (I. Rolfes, F. Gerfers, I. Kallfass)",
+      "Image/video communication expert meeting (A. Kaup)",
+      "Vacuum nanoelectronics three-country meeting (R. Schreiner)"
+    ],
+    "awards": [
+      "ITG prizes for outstanding achievements"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Newly elected VDE ITG board 2024–2026, including Elbers, Weitsch, Ziegler, Bauch, Fingscheidt, Tönjes, Brüggenwirth, Gladisch, Rehfuess.",
+      "Column Zum Nachdenken & Mitreden."
+    ]
+  },
+  {
+    "year": 2023,
+    "label": "Oktober 2023",
+    "nr": "04/2023",
+    "topic": "Machine learning and AI in communication networks",
+    "contrib": "Inherent network intelligence vs. AI add-ons (3GPP Rel-18 QoS prediction); distributed learning at a virtualized edge for resilience; chatbot/dialogue-system challenge.",
+    "pdf": "/resource/blob/2275456/65c6510c2dfb2600a12e9695efb3eb93/itg-news-oktober-2023-download-data.pdf",
+    "id": "i11",
+    "pages": 20,
+    "editorial": "Cover theme machine learning and AI in communication networks.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Inhärente Intelligenz in Kommunikationsnetzen",
+        "authors": "Dr.-Ing. Henning Sanneck (and co-authors as printed)",
+        "pages": "6–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Distributed Learning in a Virtualized Edge for Improved Resilience",
+        "authors": "As printed",
+        "pages": "10–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Chatbot-Challenge – Spielend mit KI von der Idee zum Dialogsystem",
+        "authors": "Jun.-Prof. Dr.-Ing. Ingo Siegert",
+        "pages": "12",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Global radar-expertise meeting"
+    ],
+    "awards": [
+      "ITG Dissertationspreis 2023: Dr.-Ing. Karim Armanious; Dr.-Ing. Alexander Marek; Dr.-Ing. Robert Pöhlmann",
+      "ITG Fellowship / ITG Preis / VDE Ehrenmedaille & Ehrenurkunde 2023",
+      "ITG Award / Special Award / Wissenschaftspreis der IuK-Technik 2023"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Column Zum Nachdenken & Mitreden (Damian Dudek)."
+    ]
+  },
+  {
+    "year": 2023,
+    "label": "Juli 2023",
+    "nr": "03/2023",
+    "topic": "Energy efficiency",
+    "contrib": "Energy efficiency of ubiquitous video (shorts/streams); ICT sustainability with energy efficiency as the main lever.",
+    "pdf": "/resource/blob/2261048/c88757415937b60aa239614c286a2e38/itg-news-juli-2023-download-data.pdf",
+    "id": "i12",
+    "pages": 16,
+    "editorial": "Cover theme energy efficiency.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Video Shorts, Clips, Tubes, and Streams Everywhere: Energieeffizienz in der Videokommunikation",
+        "authors": "Dr.-Ing. Christian Herglotz; Prof. Dr.-Ing. André Kaup",
+        "pages": "8–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Nachhaltigkeit durch IKT – Energieeffizienz als Treiber",
+        "authors": "As printed",
+        "pages": "9–11",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Photonische Netze, Leipzig",
+      "WSA & SCC, Braunschweig",
+      "TuZ 2023, Erfurt (R. Krenz-Baath, R. Fischer, E. Jorswieck)",
+      "AKML lecture year start (P. Friedrich)",
+      "VDE Young Net restart after Corona"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": []
+  },
+  {
+    "year": 2023,
+    "label": "April 2023",
+    "nr": "02/2023",
+    "topic": "Resilient communications technology",
+    "contrib": "Resilient Future Railway Mobile Communication System (FRMCS/5G failure points); ICT resilience in crises, including drone-based emergency networks (emergenCITY).",
+    "pdf": "/resource/blob/2241682/6b21c81a98e890901e247cb945219859/itg-news-april-2023-download-data.pdf",
+    "id": "i13",
+    "pages": 12,
+    "editorial": "Cover theme resilient communications technology.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Resilientes Future Railway Mobile Communication System",
+        "authors": "Dr. rer. nat. Waldemar Stöcklein; Dr.-Ing. Volker Ziegler",
+        "pages": "3–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Resiliente Informations- und Kommunikationstechnologie ist in Krisen unverzichtbar",
+        "authors": "Prof. Dr.-Ing. Matthias Hollick (emergenCITY and co-authors as printed)",
+        "pages": "8–11",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "KKN 2022 back in person"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Cooperation agreement IEEE CTSoc – ITG."
+    ]
+  },
+  {
+    "year": 2023,
+    "label": "Januar 2023",
+    "nr": "01/2023",
+    "topic": "XR/metaverse, Earth observation and space sustainability",
+    "contrib": "Technology vision 2030 / metaverse network requirements; TanDEM-X & Tandem-L 3D radar for climate monitoring; space-based solar power; mega-constellations; satellite reconnaissance for security.",
+    "pdf": "/resource/blob/2225128/f376710ade8e2d6d0d86f2a1f34bb212/itg-news-januar-2023-download-data.pdf",
+    "id": "i14",
+    "pages": 24,
+    "editorial": "XR/metaverse, Earth observation and space sustainability.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Technologievision 2030 – alles „meta“ oder was?",
+        "authors": "Prof. Dr.-Ing. Petra Friedrich; Dr.-Ing. Dirk Wübben (and co-authors as printed)",
+        "pages": "8–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "TanDEM-X & Tandem-L: 3D-Radaraufnahmen revolutionieren die Umwelt- und Klimaüberwachung",
+        "authors": "Dr.-Ing. Manfred Zink; Prof. Dr.-Ing. Alberto Moreira; Dr. Volker Ziegler",
+        "pages": "12–14",
+        "kind": "scientific"
+      },
+      {
+        "title": "Solar power beams: A step towards cleaner energy",
+        "authors": "As printed",
+        "pages": "15",
+        "kind": "scientific"
+      },
+      {
+        "title": "Megakonstellationen als Wegbereiter für globale und dauerhafte Erdbeobachtung",
+        "authors": "Dr.-Ing. Diego Cristallini; Prof. Dr. Daniel O’Hagan",
+        "pages": "16–18",
+        "kind": "scientific"
+      },
+      {
+        "title": "Satellitengestützte Aufklärung zur Krisenprävention und Sicherheit",
+        "authors": "Dr.-Ing. Thomas Neff; Dr. Thomas Jagdhuber",
+        "pages": "19–20",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "14. German Microwave Conference (GeMiC), Ulm",
+      "Applied information theory, Heilbronn",
+      "CARE REGIO",
+      "IWAENC Bamberg (W. Kellermann, H. Löllmann)",
+      "Vacuum electronics",
+      "Radio methods in public transport"
+    ],
+    "awards": [
+      "ITG prizes; honorary doctorate note for Ralf Steinmetz"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Personalia: Dr. Rupert Schreiner; Dr.-Ing. Tobias Meuser."
+    ]
+  },
+  {
+    "year": 2022,
+    "label": "Oktober 2022",
+    "nr": "04/2022",
+    "topic": "DFG priority programme / wireless communication technology",
+    "contrib": "DFG programme ‘Resilient Worlds’; chip design as strategic autonomy; timing-network attacks on critical infrastructure; 5G resilience when moving into the cloud.",
+    "pdf": "/resource/blob/2210510/34d646db10e8b0123b64473f713867d7/itg-news-oktober-2022-download-data.pdf",
+    "id": "i15",
+    "pages": 24,
+    "editorial": "DFG priority programme Resilient Worlds and wireless communications.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Resilient Worlds (DFG priority programme)",
+        "authors": "Prof. Dr.-Ing. habil. Falko Dressler (and co-authors as printed)",
+        "pages": "10",
+        "kind": "scientific"
+      },
+      {
+        "title": "Chip-Design als Schlüssel strategischer Autonomie in der Halbleiter-Wertschöpfungskette",
+        "authors": "Dipl.-Ing. Stefan Wunderer; Dr. Simon Rinas",
+        "pages": "11–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Angriffe auf Timing-Netze gefährden kritische Infrastrukturen",
+        "authors": "As printed",
+        "pages": "14–15",
+        "kind": "scientific"
+      },
+      {
+        "title": "Moving into the Cloud: A Challenge for 5G Resilience?",
+        "authors": "Dr. Stefan Geissler; Prof. Dr. Tobias Hossfeld",
+        "pages": "16–18",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Optical communications",
+      "5G solutions and 6G outlook",
+      "Image/video communication",
+      "Wafer-level reliability",
+      "NTN & satellites — 6G to the stars",
+      "Imaging radar",
+      "KuVS Würzburg workshop on next-generation networks"
+    ],
+    "awards": [
+      "ITG Dissertationspreis 2022: Martin Frank, Sebastian Cammerer, Josef Knapp",
+      "ITG Fellowship: Joachim Sachs; Thomas Wiegand",
+      "ITG Preis / VDE Ehrenmedaille & Ehrenurkunde 2022"
+    ],
+    "obituaries": [
+      "Prof. Dr.-Ing. Kurt Antreich (TUM), age 87",
+      "Prof. Dr. Djamshid Tavangarian (May 2022)"
+    ],
+    "notes": [
+      "New FA chair Prof. Dr.-Ing. Ilona Rolfes (successor to R. Jakoby)."
+    ]
+  },
+  {
+    "year": 2022,
+    "label": "Juli 2022",
+    "nr": "03/2022",
+    "topic": "Society news only (short pandemic-era issue)",
+    "contrib": "No scientific feature: privacy/trust workshop note, image-of-electrical-engineering study, obituaries and dates.",
+    "pdf": "/resource/blob/2190824/60a4cc7efcb8b648497c8450b9515c57/itg-news-juli-2022-download-data.pdf",
+    "id": "i16",
+    "pages": 4,
+    "editorial": "Short pandemic-era society issue — no scientific feature dossier.",
+    "interview": null,
+    "articles": [],
+    "startups": [],
+    "events": [
+      "Privacy and Trust in the Digital World workshop note"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Prof. Dr. rer. nat. Armin Kohlrausch",
+      "Note on FA MN 7 leadership (Prof. Dr. techn. habil. Leonhard Reindl / Prof. Rupitsch)"
+    ],
+    "notes": [
+      "Interim report on the study „Image der Elektrotechnik“."
+    ]
+  },
+  {
+    "year": 2022,
+    "label": "April 2022",
+    "nr": "02/2022",
+    "topic": "5G technology in industry",
+    "contrib": "5G Plug-and-Produce: integrating 5G with industrial Ethernet/TSN, including experimental validation.",
+    "pdf": "/resource/blob/2172372/63e8e2b86fcf7f85c443ef8011505188/itg-news-april-2022-data.pdf",
+    "id": "i17",
+    "pages": 12,
+    "editorial": "Cover theme 5G technology in industry.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "5G Plug and Produce – Integration von 5G und Industrial Ethernet/TSN",
+        "authors": "Prof. Dr.-Ing. Norbert Hanik (feature as printed; experimental validation)",
+        "pages": "5–10",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "NetSys meets Hanse (S. Fischer, H. Hellbrück, M. Fischer, W. Lamersdorf)",
+      "Electronics in care",
+      "Modelling and simulation of photonic components"
+    ],
+    "awards": [
+      "90th birthday of Prof. Ernst Lüder (N. Frühauf, J. Speidel, B. Yang)"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Personalia: Nils Pohl; Andreas Danklmayer; Rüdiger Halfmann."
+    ]
+  },
+  {
+    "year": 2022,
+    "label": "Januar 2022",
+    "nr": "01/2022",
+    "topic": "Resilient grids and 6G research",
+    "contrib": "Resilient power and communications networks; German 6G hubs (6G-life, Open6GHub, 6GEM, 6G-RIC) and Thinknet 6G.",
+    "pdf": "/resource/blob/2105850/fc0c860253a7b583b4d7d495344f41ec/itg-news-januar-2022--1--data.pdf",
+    "id": "i18",
+    "pages": 12,
+    "editorial": "Resilient grids and German 6G hubs.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Resiliente Strom- und Kommunikationsnetze – Sicherheit und Zuverlässigkeit für Bevölkerung und Wirtschaft",
+        "authors": "As printed",
+        "pages": "4–5",
+        "kind": "scientific"
+      },
+      {
+        "title": "6G-life Hub: Digitale Transformation und Souveränität zukünftiger Kommunikationsnetze",
+        "authors": "Prof. Dr.-Ing. Holger Boche; Prof. Dr.-Ing. Wolfgang Kellerer (and co-authors as printed)",
+        "pages": "6",
+        "kind": "scientific"
+      },
+      {
+        "title": "Open6GHub – 6G für Mensch, Umwelt und Gesellschaft",
+        "authors": "Prof. Dr.-Ing. Hans Schotten; Prof. Dr.-Ing. Haris Gačanin",
+        "pages": "7",
+        "kind": "scientific"
+      },
+      {
+        "title": "6G-Forschungs-Hub 6GEM",
+        "authors": "As printed",
+        "pages": "7",
+        "kind": "scientific"
+      },
+      {
+        "title": "6G-RIC: 6G Research and Innovation Cluster",
+        "authors": "Prof. Dr.-Ing. Slawomir Stanczak",
+        "pages": "8",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Thinknet 6G Summit 2021",
+      "ITG FG KT 3.1 photonic modelling workshop",
+      "Virtual scientific exchange; speech communication (R. Häb-Umbach, S. Möller / ISCA)"
+    ],
+    "awards": [
+      "Call for Action on Electronics from Germany"
+    ],
+    "obituaries": [],
+    "notes": [
+      "New ITG position paper on resilient grids."
+    ]
+  },
+  {
+    "year": 2021,
+    "label": "Oktober 2021",
+    "nr": "04/2021",
+    "topic": "Wireless communication technology",
+    "contrib": "From sensor networks to ‘network as a sensor’ (joint comms & sensing); Hülsmeyer radar biography; broadband-rollout quality.",
+    "pdf": "/resource/blob/2090212/5dd4720dea8ba799ed05701d60ae7cdd/itg-news-oktober-2021-data.pdf",
+    "id": "i19",
+    "pages": 20,
+    "editorial": "Wireless communication technology: from sensor networks to network-as-a-sensor.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "From Sensor Networks to Network as a Sensor",
+        "authors": "Dr. Silvio Mandelli; Dr. Maximilian Arnold; Dr. Frank Schaich; Dr. Thorsten Wild",
+        "pages": "4–6",
+        "kind": "scientific"
+      },
+      {
+        "title": "Christian Hülsmeyer – an Outstanding Biography",
+        "authors": "Prof. (i. R.) Dr. rer. nat.; Dr.-Ing. Wolfgang Holpp",
+        "pages": "7–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Qualität im Breitbandausbau",
+        "authors": "Dipl.-Ing. Thomas Sentko",
+        "pages": "10–13",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Summer School on Video Coding and Processing, Berlin",
+      "Optical communications exchange"
+    ],
+    "awards": [
+      "ITG Dissertationspreis, Fellowship, Preis, VDE Ehrenmedaille & Ehrenurkunde 2021"
+    ],
+    "obituaries": [],
+    "notes": [
+      "New joint ETG/ITG committee; Dr.-Ing. Theresa Noll."
+    ]
+  },
+  {
+    "year": 2021,
+    "label": "Juli 2021",
+    "nr": "03/2021",
+    "topic": "Quantum communication / QKD",
+    "contrib": "Berlin OpenQKD testbed for quantum-safe links; DLR Quantum Space Operations Center; security in the quantum era; call for 6G experts.",
+    "pdf": "/resource/blob/2076906/c55bfd819adaec238f90736c74de0cf1/itg-news-juli-2021--1--data.pdf",
+    "id": "i20",
+    "pages": 12,
+    "editorial": "Quantum communication / QKD.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Berliner Testbett für quantensichere Kommunikation im Europäischen Verbundprojekt OpenQKD",
+        "authors": "Dr. Helmut Griesser; Dr. Ralf-Peter Braun; Dr. Marc Geitz",
+        "pages": "4–6",
+        "kind": "scientific"
+      },
+      {
+        "title": "DLR Quantum Space Operations Center – Anwendung von Quantenschlüsseln im Satellitenbetrieb",
+        "authors": "Dr. Jan Pitann; Dr. Andreas Spörl",
+        "pages": "7–8",
+        "kind": "scientific"
+      },
+      {
+        "title": "Security in the quantum computing era – Should we be worried today?",
+        "authors": "Dr. Dimitrios Schoinianakis",
+        "pages": "9–11",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Energy industry and 5G",
+      "TuZ workshop; 80 years Zuse Z3 (Horst Zuse)"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Call for 6G experts; free teaching material for CPS."
+    ]
+  },
+  {
+    "year": 2021,
+    "label": "April 2021",
+    "nr": "02/2021",
+    "topic": "Communications technology & COVID-19; cloud",
+    "contrib": "Internet under pandemic load; COVID-era traffic change; molecular communication ‘from Shannon to Corona’; flexible cloud platforms; ITG papers on photonic–electronic integration, Hidden Electronics II, technological sovereignty.",
+    "pdf": "/resource/blob/2032800/1b5720f969ac0b0a62f980a230ad3e06/itg-news-april-2021-data.pdf",
+    "id": "i21",
+    "pages": 20,
+    "editorial": "Communications technology & COVID-19; cloud platforms.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Photonisch-elektronische Integration (ITG position paper)",
+        "authors": "ITG position paper",
+        "pages": "2–3",
+        "kind": "committee"
+      },
+      {
+        "title": "„Das Internet trotzt der globalen Dauerbelastung durch die Corona-Pandemie“",
+        "authors": "Dr. Christoph Dietzel",
+        "pages": "5–6",
+        "kind": "scientific"
+      },
+      {
+        "title": "Veränderung des Internetverkehrs während der ersten Welle der COVID-19-Pandemie",
+        "authors": "Prof. Dr. Anja Feldmann; Dr. Oliver Gasser; Dr. Enric Pujol; Dr.-Ing. Ingmar Poese; Dr. Christoph Dietzel; Dr.-Ing. Matthias Wichtlhuber; Prof. Dr. Juan Tapiador; Ass.-Prof. Dr. Narseo Vallina-Rodriguez; Prof. Dr. rer. nat. Oliver Hohlfeld; Gastprof. Dr. Georgios Smaragdakis",
+        "pages": "6–8",
+        "kind": "scientific"
+      },
+      {
+        "title": "2020: Networks in the time of COVID-19",
+        "authors": "As printed",
+        "pages": "9–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Von Shannon zu Corona – Molekulare Kommunikation",
+        "authors": "Prof. Dr.-Ing. Holger Boche; Prof. Dr.-Ing. habil. Falko Dressler; Prof. Dr.-Ing. Peter A. Höher; Prof. Dr.-Ing. Robert Schober; Prof. Dr.-Ing. Hans Schotten",
+        "pages": "12–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Leistungsfähige und hochflexible Cloud-Plattformen als Rückgrat des Informationszeitalters",
+        "authors": "As printed",
+        "pages": "15",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Usable Security and Privacy Workshop Berlin 2021"
+    ],
+    "awards": [
+      "90th birthday Prof. Gerhard M. Sessler",
+      "80th birthday Paul J. Kühn"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Position papers Hidden Electronics II and technological sovereignty; new chairs A. Timm-Giel, H. Rohling."
+    ]
+  },
+  {
+    "year": 2021,
+    "label": "Januar 2021",
+    "nr": "01/2021",
+    "topic": "Space communication networks",
+    "contrib": "Standards for optical space comms; AI for orbital–terrestrial networks as enabler of global wireless connectivity.",
+    "pdf": "/resource/blob/2010392/622b5b66392ff0e0ebab800a8054bf13/itg-news-januar-2021-data.pdf",
+    "id": "i22",
+    "pages": 12,
+    "editorial": "Space communication networks; newly elected ITG board.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Standards für die Optische Weltraumkommunikation",
+        "authors": "Dr.-Ing. Dirk Giggenbach (and co-authors as printed)",
+        "pages": "4–5",
+        "kind": "scientific"
+      },
+      {
+        "title": "AI for orbital-terrestrial networks – key enabler for true global wireless connectivity",
+        "authors": "Prof. Dr.-Ing. Armin Dekorsy; Dr. Ulf Kulau; Dr.-Ing. Philipp Wertz; Dr.-Ing. Thorsten Wild",
+        "pages": "5–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Overview of High-Altitude Platform Stations (HAPS)",
+        "authors": "Dr. Amitava Ghosh; Dr. Frank Hsieh",
+        "pages": "8–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Der Mond wird mobil",
+        "authors": "As printed",
+        "pages": "10",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Virtual double conference under ITG FA MN6"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Newly elected ITG board listed (Weitsch, Ziegler, Bauch, Brüggenwirth, and others as printed)."
+    ]
+  },
+  {
+    "year": 2020,
+    "label": "Juli / Oktober 2020",
+    "nr": "03–04/2020",
+    "topic": "Privacy & security, radar, 6G vision 2030",
+    "contrib": "Corona-App privacy; user-centric security engineering via behaviour simulation; smart-speaker privacy; privacy in speech interfaces; future radar system concepts; 6G key technologies and architecture for the 2030s.",
+    "pdf": "/resource/blob/1991012/07662bec66907573ab254c3d99394ec7/itg-news-juli-oktober-2020-data.pdf",
+    "id": "i23",
+    "pages": 32,
+    "editorial": "Combined Juli/Oktober 2020 issue: privacy & security, future radar, 6G vision 2030.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Corona-App & Schutz der Privatsphäre",
+        "authors": "Jun.-Prof. Dr.-Ing. Ingo Siegert",
+        "pages": "3–4",
+        "kind": "scientific"
+      },
+      {
+        "title": "Nutzerzentriertes Security & Privacy Engineering mittels Verhaltenssimulationen",
+        "authors": "As printed",
+        "pages": "5–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Smart Speakers and Privacy: Users’ Perspectives",
+        "authors": "Prof. Dr.-Ing. Sebastian Möller; Dipl.-Ing. Niklas Kirschnick; Prof. Dr. Joachim Meyer",
+        "pages": "8–10",
+        "kind": "scientific"
+      },
+      {
+        "title": "Privacy in Speech Interfaces",
+        "authors": "Dr. Birgit Brüggemeier",
+        "pages": "11–12",
+        "kind": "scientific"
+      },
+      {
+        "title": "The SPEAKER project – speech assistance made in Germany",
+        "authors": "As printed",
+        "pages": "13–14",
+        "kind": "scientific"
+      },
+      {
+        "title": "Take Back Control! The Use of Mental Models to Develop Privacy Dashboards",
+        "authors": "Prof. Dr.-Ing. Luigi Lo Iacono",
+        "pages": "15–19",
+        "kind": "scientific"
+      },
+      {
+        "title": "Systemkonzepte für das Radar der Zukunft",
+        "authors": "Prof. Dr.-Ing. Werner Wiesbeck (and co-authors as printed)",
+        "pages": "20–25",
+        "kind": "scientific"
+      },
+      {
+        "title": "6G – Aufbruch zur Vernetzung neuer Welten – Kommunikation für die 2030er-Jahre",
+        "authors": "Dr.-Ing. Volker Ziegler (and co-authors as printed)",
+        "pages": "26–29",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Sprachassistenten: Anwendungen, Implikationen, Entwicklungen"
+    ],
+    "awards": [
+      "ITG Preis, Dissertationspreis, Fellow, VDE Ehrenmedaille & Ehrenurkunde 2020"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Combined 03–04/2020 magazine."
+    ]
+  },
+  {
+    "year": 2020,
+    "label": "April 2020",
+    "nr": "02/2020",
+    "topic": "5G & Industry 4.0 — end-to-end QoS in industrial nets",
+    "contrib": "E2E QoS across wired industrial nets, cellular 5G and IT platforms; position paper on technological sovereignty.",
+    "pdf": "/resource/blob/1961942/f7fee5c87e1244a8d042bea5380ed76e/itg-news-april-2020-data.pdf",
+    "id": "i24",
+    "pages": 8,
+    "editorial": "5G & Industry 4.0 — end-to-end QoS in industrial nets.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Ende-zu-Ende-Dienstgüte in industriellen Netzen",
+        "authors": "Dr.-Ing. Joachim Sachs; Prof. Dr.-Ing. Andreas Timm-Giel; Prof. Dr.-Ing. Christian Wietfeld; Dr.-Ing. Peter M. Rost; Dr.-Ing. Rakash Sivasiva Ganesan; Dipl.-Ing. Arne Neumann; Dr.-Ing. Ievgenii Tsokalo",
+        "pages": "3–6",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Workshop „5G for Verticals – Challenges and Solutions“"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Position paper on technological sovereignty.",
+      "Member information on the 2020 board election."
+    ]
+  },
+  {
+    "year": 2020,
+    "label": "Januar 2020",
+    "nr": "01/2020",
+    "topic": "5G at launch — what next?",
+    "contrib": "5G security architecture (3GPP vs LTE); reliable EMF measurements at massive-MIMO 5G base stations; technological sovereignty.",
+    "pdf": "/resource/blob/1937474/1bfedb494c510507af28571e548811b0/itg-news-januar-2020-pdf-data.pdf",
+    "id": "i25",
+    "pages": 12,
+    "editorial": "5G at launch — what next?",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Die Sicherheitsarchitektur von 5G-Mobilfunknetzen",
+        "authors": "Dr.-Ing. Klaus Illgner-Fehns",
+        "pages": "4–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Konzepte für zuverlässige Immissionsmessungen an 5G-Basisstationen mit massivem MIMO",
+        "authors": "Dr.-Ing. Christian Bornkessel; Dipl.-Ing. Sascha Schiessl; Prof. Dr.-Ing. Dirk Heberling",
+        "pages": "8–10",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Taktiles Internet mit Mensch-Maschine-Interaktion (F. Fitzek)"
+    ],
+    "awards": [
+      "Awards for outstanding achievements"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Invitation to the ITG Mitgliederversammlung; technological sovereignty column."
+    ]
+  },
+  {
+    "year": 2019,
+    "label": "Oktober 2019",
+    "nr": "04/2019",
+    "topic": "Data sovereignty in industrial ecosystems",
+    "contrib": "Industrial data sovereignty; sensor/IoT aside; 5G for verticals and resilient energy/comms nets.",
+    "pdf": "/resource/blob/1901038/72f5a53f1335d310d5d82a80668b6cb6/itg-news-oktober-2019-data.pdf",
+    "id": "i26",
+    "pages": 16,
+    "editorial": "Data sovereignty in industrial ecosystems.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Datensouveränität in industriellen Ökosystemen",
+        "authors": "Prof. Dr.-Ing. Boris Otto; Prof. Dr. Claudia Eckert",
+        "pages": "10–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Steht ein Sensor im Wald",
+        "authors": "As printed",
+        "pages": "14–15",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "5G für vertikale Industrien",
+      "QoE and UX with ML, 5G and immersive tech (T. Hossfeld, S. Möller)",
+      "Scientific-youth exchange (A. Kaup, D. Saupe)"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "VDE Tec Summit 2020 & ITG Mitgliederversammlung."
+    ]
+  },
+  {
+    "year": 2019,
+    "label": "Juli 2019",
+    "nr": "03/2019",
+    "topic": "5G technology for industry",
+    "contrib": "5G NR for URLLC; 5G positioning from standards to market; industrial networking; German 5G spectrum auction recap; new quantum-technology colloquium.",
+    "pdf": "/resource/blob/1876262/8a47dc57a4293694da3518ae83fe4c6e/itg-news-juli-2019-data.pdf",
+    "id": "i27",
+    "pages": 16,
+    "editorial": "5G technology for industry.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "5G for Industrial Applications",
+        "authors": "Prof. Dr.-Ing. Christian Wietfeld; Dr.-Ing. Joachim Sachs",
+        "pages": "8–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Networking solutions for the new age of industries",
+        "authors": "Dipl.-Ing. Thomas Heyn; Dr.-Ing. Rohit Datta; Dipl.-Ing. Norbert Franke",
+        "pages": "10",
+        "kind": "scientific"
+      },
+      {
+        "title": "Faktencheck 5G",
+        "authors": "Prof. Hans Dieter Schotten; Dr. Andreas Müller",
+        "pages": "11–15",
+        "kind": "scientific"
+      },
+      {
+        "title": "Verlauf der 5G-Versteigerung auf einen Blick",
+        "authors": "As printed",
+        "pages": "7",
+        "kind": "committee"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Kommunikationsnetze communities (G. Carle, W. Kellerer, J. Ott, T. Hossfeld)",
+      "Optical fibre nonlinearities (S. Pachnicke)",
+      "Space utilisation trends"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "New quantum-technology colloquium announced.",
+      "Personalia: Wolfgang Mathis; Friedel Gerfers; Yvonne Weitsch."
+    ]
+  },
+  {
+    "year": 2019,
+    "label": "April 2019",
+    "nr": "02/2019",
+    "topic": "Edge cloud / serverless services",
+    "contrib": "Serverless computing paradigm (evolution, benefits, limits); flexible in-network edge architectures for the ‘Internet of Production’.",
+    "pdf": "/resource/blob/1852350/03b35f1105da1ebdfc1c272aaa685b68/april-2019-data.pdf",
+    "id": "i28",
+    "pages": 12,
+    "editorial": "Edge cloud / serverless services.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "The Serverless Computing paradigm",
+        "authors": "M.Sc. Manuel Stein; Dr. Paarijaat Aditya; Dr. Istemi Ekin Akkus; Dr. Ruichuan Chen; Dr. Ivica Rimac; Dr. Volker Hilt",
+        "pages": "4–6",
+        "kind": "scientific"
+      },
+      {
+        "title": "Flexible Netzwerkarchitekturen für das Internet of Production",
+        "authors": "Dr. Martin Henze; Prof. Dr.-Ing. Klaus Wehrle",
+        "pages": "7–8",
+        "kind": "scientific"
+      },
+      {
+        "title": "Multi-access Edge Computing – a key enabler for latency critical applications",
+        "authors": "As printed",
+        "pages": "9–10",
+        "kind": "scientific"
+      },
+      {
+        "title": "Hamburg Smart Sea Port – 5G-Network-Slicing-Testfeld im realen Betrieb",
+        "authors": "As printed",
+        "pages": "11",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Machine-learning technologies and applications (J. Benze)",
+      "Tradition trifft Innovation (V. Kühn)"
+    ],
+    "awards": [
+      "VDE Ehrenurkunde Prof. Dr. Dirk; Lars Christoph Schmelz; Markus Breitbach"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Position paper Zur technologischen Souveränität (K. Illgner-Fehns editorial)."
+    ]
+  },
+  {
+    "year": 2019,
+    "label": "Januar 2019",
+    "nr": "01/2019",
+    "topic": "Impact of AI (Technikfolgen)",
+    "contrib": "Opportunities and risks of AI in telecom networks (ops vs societal impact); quantum computing as next revolution vs security risk; NewSpace as ITG focus project.",
+    "pdf": "/resource/blob/1795358/edaba5b549cc8a63ea560b99b850f979/itg-news-01-2019-data.pdf",
+    "id": "i29",
+    "pages": 12,
+    "editorial": "Impact of AI (Technikfolgen).",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Chancen und Herausforderungen der Künstlichen Intelligenz in Telekommunikationsnetzen",
+        "authors": "Dr.-Ing. Henning Sanneck (and co-authors as printed)",
+        "pages": "6–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Die nächste Computerrevolution: Quantensprung vorwärts oder Sicherheitsrisiko?",
+        "authors": "Prof. Dr.-Ing. Bernhard Schmauss; Prof. Dr.-Ing. Petra Friedrich",
+        "pages": "10–11",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Speech processing (S. Doclo, P. Jax)",
+      "Vacuum electronics",
+      "Optical communications (S. Randel, J. Benra)",
+      "Realtime and security"
+    ],
+    "awards": [
+      "ITG-Preise 2019"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Personalia: Prof. Dr.-Ing. Armin Dekorsy becomes FA speaker."
+    ]
+  },
+  {
+    "year": 2018,
+    "label": "Oktober 2018",
+    "nr": "04/2018",
+    "topic": "5G NewSpace — terrestrial 5G and satellites",
+    "contrib": "Small-satellite constellations vs OldSpace; complementary 5G–satellite cooperation and integration.",
+    "pdf": "/resource/blob/1769972/5d37f22627fca20dd785d841f4689dc5/itg-news-oktober-2018---download-data.pdf",
+    "id": "i30",
+    "pages": 24,
+    "editorial": "5G NewSpace — terrestrial 5G and satellites.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "5G-NewSpace",
+        "authors": "Dr.-Ing. Dirk Giggenbach (issue editor / as printed)",
+        "pages": "4–5",
+        "kind": "scientific"
+      },
+      {
+        "title": "Komplementäre Kooperation von 5G Mobilfunk und Satellitensystemen",
+        "authors": "Prof. Dr.-Ing. Armin Dekorsy; Dr.-Ing. Dirk Wübben",
+        "pages": "6–8",
+        "kind": "scientific"
+      },
+      {
+        "title": "High-Throughput-Satelliten für die Breitbandversorgung aus dem All",
+        "authors": "Dr. Werner Mohr",
+        "pages": "9–12",
+        "kind": "scientific"
+      },
+      {
+        "title": "Das Ziel: Breitbandversorgung aus dem All",
+        "authors": "Dr. rer. nat. Marcus Knopp; Prof. Dr.-Ing. Christian Hofmann; Prof. Dr.-Ing. Andreas Knopp, MBA",
+        "pages": "13–14",
+        "kind": "scientific"
+      },
+      {
+        "title": "Kerntechnologien für LEO-Satellitenkonstellationen",
+        "authors": "Dr. Ramon Mata Calvo; Dr.-Ing. Annika Dochhan",
+        "pages": "15–18",
+        "kind": "scientific"
+      },
+      {
+        "title": "High-Altitude-Platform Systems und optische Freistrahl-Kommunikation",
+        "authors": "Dr. Herwig Zech",
+        "pages": "19–20",
+        "kind": "scientific"
+      },
+      {
+        "title": "Kleinst-Satelliten-Netze für das Internet der Dinge",
+        "authors": "Dr.-Ing. Dirk Giggenbach; Prof. Dr.-Ing. Andreas Kirstädter; Prof. Dr. Klaus Schilling",
+        "pages": "21–23",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "ITG Mitgliederversammlung 2018",
+      "Image/video (R. Tönjes, A. Kaup)"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": []
+  },
+  {
+    "year": 2018,
+    "label": "Juli 2018",
+    "nr": "03/2018",
+    "topic": "Open Internet in Germany",
+    "contrib": "Stock-take of the open Internet with policy/technical recommendations (net neutrality / openness).",
+    "pdf": "/resource/blob/1749590/1f772c7d6d0b440e5c74c4708a7d31a3/news-juli-2018-data.pdf",
+    "id": "i31",
+    "pages": 8,
+    "editorial": "Open Internet in Germany.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Offenes Internet in Deutschland – Eine Bestandsaufnahme",
+        "authors": "Prof. Dr.-Ing. Herwig Unger (and co-authors as printed)",
+        "pages": "5–8",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Microwave technology (R. Quay)",
+      "44. Deutsche Jahrestagung für Akustik (B. Seeber)"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Realtime-systems committee meeting announcements."
+    ]
+  },
+  {
+    "year": 2018,
+    "label": "April 2018",
+    "nr": "02/2018",
+    "topic": "Industrial Internet / TACNET 4.0",
+    "contrib": "Cognitive industrial Internet (Fraunhofer CIT); TACNET 4.0 ultra-low-latency industrial radio with open interfaces.",
+    "pdf": "/resource/blob/1706240/41a318b6e1d5242f1302565873fec0b2/news-2018-02-data.pdf",
+    "id": "i32",
+    "pages": 8,
+    "editorial": "Industrial Internet / TACNET 4.0.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Wegbereiter für ein vertrauenswürdiges industrielles Internet der Zukunft",
+        "authors": "Prof. Dr. Claudia Eckert",
+        "pages": "5–6",
+        "kind": "scientific"
+      },
+      {
+        "title": "TACNET 4.0",
+        "authors": "Prof. Dr.-Ing. Hans D. Schotten; Dr.-Ing. Peter Rost",
+        "pages": "7–8",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "VDE Tec Summit 2018",
+      "Energy grid of the future",
+      "MED@MORE"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Founding of FA KT6 „IoT & Industrie 4.0“ (B. Wolf, P. Friedrich, J. Benze)."
+    ]
+  },
+  {
+    "year": 2018,
+    "label": "Januar 2018",
+    "nr": "01/2018",
+    "topic": "Light fields and machine vision",
+    "contrib": "Light-field capture/applications (multi-camera); ‘beyond human vision’ machine seeing; standardization outlook.",
+    "pdf": "/resource/blob/1684818/f25594d11bd859fccfb70002753b3a77/itg--news-2018-01-data.pdf",
+    "id": "i33",
+    "pages": 20,
+    "editorial": "Light fields and machine vision.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Lichtfelder und ihre Anwendungen",
+        "authors": "Prof. Dr.-Ing. André Kaup (and co-authors as printed)",
+        "pages": "7–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Beyond human vision – maschinelles Sehen mit Polarisation",
+        "authors": "Dr. Michael Schöberl",
+        "pages": "10–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Beyond human vision – The shift from visual sensing for humans to visual sensing for computers",
+        "authors": "Dr. rer. nat. Jens Klare",
+        "pages": "12–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Bildgebende Radarsensorik",
+        "authors": "As printed",
+        "pages": "14–16",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Energy grid of the future",
+      "Industrial communications (U. Jumar, J. Jasperneite)",
+      "Reliability/fault tolerance (H. T. Vierhaus, M. Krstic, G. Teepe)",
+      "Logistics and realtime"
+    ],
+    "awards": [
+      "ITG-Preise 2018"
+    ],
+    "obituaries": [],
+    "notes": []
+  },
+  {
+    "year": 2017,
+    "label": "Oktober 2017",
+    "nr": "04/2017",
+    "topic": "5G technologies and verticals",
+    "contrib": "5G radio/network placement; Media & Entertainment and Industry 4.0 verticals; ‘fast care’ real-time healthcare.",
+    "pdf": "/resource/blob/1684800/05d18de0a7397e3028d1fd0f0f4509ef/itg-news-4-2017-data.pdf",
+    "id": "i34",
+    "pages": 12,
+    "editorial": "5G technologies and verticals.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Teil 1: 5G – Eine Einordnung",
+        "authors": "Dr.-Ing. Klaus Illgner-Fehns",
+        "pages": "6",
+        "kind": "scientific"
+      },
+      {
+        "title": "Teil 2: Vertical „Media & Entertainment“",
+        "authors": "As printed",
+        "pages": "7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Teil 3: Vertical „Industrie 4.0“",
+        "authors": "Dr. Andreas Müller",
+        "pages": "8–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "„fast care“ – Echtzeitfähige 5G-Applikation für intelligente medizinische Assistenzsysteme",
+        "authors": "Prof. Dr. Ulrich Fischer-Hirchert",
+        "pages": "10",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Industrial radio, Regensburg (R. Tönjes)",
+      "International Radar Symposium, Prague (H. Rohling)"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Personalia: Prof. Dr.-Ing. habil. Hugo Fastl."
+    ]
+  },
+  {
+    "year": 2017,
+    "label": "Juli 2017",
+    "nr": "03/2017",
+    "topic": "Localization, privacy and navigation",
+    "contrib": "Privacy-enhancing technologies for reactive location queries (PARADISE); navigation variants; UHF-RFID positioning; Industry 4.0 radio position paper.",
+    "pdf": "/resource/blob/1634998/5b9a772413d1510acc486fe9b024c2dd/itg-news-2017-3-download-akkoredeon-data.pdf",
+    "id": "i35",
+    "pages": 16,
+    "editorial": "Localization, privacy and navigation.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Mehr Datenschutz durch Privacy-Enhancing Technologies (PETs) bei reaktiven Lokationsabfragen",
+        "authors": "As printed",
+        "pages": "7–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Navigation und ihre Spielarten",
+        "authors": "Prof. Dr.-Ing. Jörn Thielecke",
+        "pages": "10–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Systemlösungen mit UHF-RFID-Ortungstechnologie",
+        "authors": "Prof. Dr.-Ing. Roland Gabriel",
+        "pages": "14–15",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Abschiedskolloquium Prof. Johannes Huber (R. Schober)",
+      "In-network processing / NFV workshop",
+      "Photonic components",
+      "Algorithms, hardware and system security (P. Müller, J. Alt)"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Prof. Dr.-Ing. Horst Groll"
+    ],
+    "notes": [
+      "Position paper Funkkommunikation Industrie 4.0."
+    ]
+  },
+  {
+    "year": 2017,
+    "label": "April 2017",
+    "nr": "02/2017",
+    "topic": "Connected vehicles",
+    "contrib": "Networked HD map as a sensor for automated driving; evolution of cellular V2X (LTE-V2X research and standards).",
+    "pdf": "/resource/blob/1596872/e58468f7d3e485f915fb2ef90a4d2526/itg-news-2017-2-download-akkordeon-data.pdf",
+    "id": "i36",
+    "pages": 12,
+    "editorial": "Connected vehicles.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Vernetzte Straßenkarte als Sensor für hochautomatisiertes Fahren",
+        "authors": "Prof. Dr.-Ing. André Kaup; PD Dr.-Ing. Rainer Grünheid",
+        "pages": "6–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Evolution des Mobilfunks für vernetzte Fahrzeuge",
+        "authors": "Dr.-Ing. Joachim Sachs; Dr.-Ing. Michael Meyer",
+        "pages": "8–10",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Image/video coding",
+      "Wireless and wired communication",
+      "Automotive antennas (T. Eibert)"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Introduction of ITG Fellow; Personalia: Jürgen Detlefsen, Reinhold Häb-Umbach."
+    ]
+  },
+  {
+    "year": 2017,
+    "label": "Januar 2017",
+    "nr": "01/2017",
+    "topic": "5G spectrum administration",
+    "contrib": "Frequency-assignment procedures and IMT identifications toward WRC-19 for the fifth mobile generation.",
+    "pdf": "/resource/blob/1361704/b5f0c419f894ed930ae2f352e102afb1/itg-news-2017-1-download-akkordeon-data.pdf",
+    "id": "i37",
+    "pages": 20,
+    "editorial": "5G spectrum administration.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Funkfrequenzen für die 5. Mobilfunkgeneration und deren Zuweisungsverfahren",
+        "authors": "Prof. Dr. Tobias Hossfeld (and co-authors as printed)",
+        "pages": "10–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Potenzial der THz-Kommunikation",
+        "authors": "Prof. Dr.-Ing. Thomas Kürner",
+        "pages": "14",
+        "kind": "scientific"
+      },
+      {
+        "title": "Untersuchung von G.fast-Übertragungssystemen in realen Einsatzszenarien",
+        "authors": "Prof. Dr.-Ing. Roland Gabriel",
+        "pages": "15–17",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Photonic components (C. Schäffer, P. Krummrich)",
+      "Speech processing",
+      "IoT trends",
+      "Vacuum electronics",
+      "Auditory implants",
+      "Digital networked world (P. Tran-Gia)"
+    ],
+    "awards": [
+      "ITG-Preise 2017"
+    ],
+    "obituaries": [],
+    "notes": []
+  },
+  {
+    "year": 2016,
+    "label": "Oktober 2016",
+    "nr": "04/2016",
+    "topic": "Internet of Things",
+    "contrib": "Drone identification/localization; real-time analytics for industrial processes; IoT enablers (connectivity, sensors, business models); 5G networks for IoT.",
+    "pdf": "/resource/blob/857936/6cf11d606b82363f05dd8d1371678402/itg-news--2016-4-download-akkordeon-data.pdf",
+    "id": "i38",
+    "pages": 16,
+    "editorial": "Internet of Things.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Drohne – wohin fliegst du?",
+        "authors": "Dr.-Ing. Matthias Weiss",
+        "pages": "5–6",
+        "kind": "scientific"
+      },
+      {
+        "title": "Realtime Analytics für industrielle Prozesse",
+        "authors": "Prof. Dr.-Ing. André Kaup",
+        "pages": "7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Mit Technologieentwicklung von der Vision zur Realität",
+        "authors": "Dr.-Ing. Jan-Niklas Antons",
+        "pages": "8–10",
+        "kind": "scientific"
+      },
+      {
+        "title": "5G-Kommunikationsnetze für das Internet der Dinge",
+        "authors": "Prof. Dr.-Ing. Albert Heuberger",
+        "pages": "11–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Fokussierte Elektronenstrahl-Prozesstechnik",
+        "authors": "Dr. Hans W. P. Koops; Dr.-Ing. Volker Ziegler",
+        "pages": "14–15",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Young radar/SAR scientists",
+      "Mobile devices for healthcare"
+    ],
+    "awards": [
+      "Preisverleihung 2016 / Ausschreibungen 2017"
+    ],
+    "obituaries": [],
+    "notes": []
+  },
+  {
+    "year": 2016,
+    "label": "Juli 2016",
+    "nr": "03/2016",
+    "topic": "Optical communication",
+    "contrib": "Visible-light ‘Internet from the lamp’; photonic networks, FTTH and optical satellite comms (ECOC 2016 preview).",
+    "pdf": "/resource/blob/859842/8e38a74c7824aadbb05d5026ef1f7f8b/itg-news--2016-3-download-akkordeon-data.pdf",
+    "id": "i39",
+    "pages": 20,
+    "editorial": "Optical communication.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Internet aus der Lampe (visible-light communications)",
+        "authors": "Prof. Dr. Ilona Rolfes; Prof. Dr. Nils Pohl; Prof. Dr. Thomas Musch; Prof. Dr. Martin Hofmann (as printed with the VLC feature)",
+        "pages": "11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Datenübertragung mit Licht: im Weltraum, in Gebäuden und über Glasfaser",
+        "authors": "Dr.-Ing. Klaus-Dieter Langer; Dipl.-Ing. Nikolaus Gieschen",
+        "pages": "9–10",
+        "kind": "scientific"
+      },
+      {
+        "title": "ECOC 2016 in Düsseldorf – Ein Besuch lohnt sich!",
+        "authors": "Dr.-Ing. Ronald Freund; Dr.-Ing. Herbert Haunstein; Dr. Eugen Lach",
+        "pages": "12–14",
+        "kind": "scientific"
+      },
+      {
+        "title": "Innovationen der optischen Verbindungstechnik / Accelerating data centres and beyond",
+        "authors": "Dr.-Ing. Tolga Tekin",
+        "pages": "15–16",
+        "kind": "scientific"
+      },
+      {
+        "title": "Auditive Wiedererkennbarkeit bei Breitband-Telefonie",
+        "authors": "As printed",
+        "pages": "17–18",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "ITG Mitgliederversammlung 2016",
+      "5G solutions for the connected world",
+      "TuZ 2016: 3D chips and security"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Personalia: Jan Haase, Raphael Zender, Christoph Grimm, Anton Bauer."
+    ]
+  },
+  {
+    "year": 2016,
+    "label": "April 2016",
+    "nr": "02/2016",
+    "topic": "Where is the 5G network heading?",
+    "contrib": "5G-PPP research portfolio and work groups; 5G standardization path; LTE/5G TV distribution; ETG/ITG study on protection/automation in active distribution grids.",
+    "pdf": "/resource/blob/839600/e2a6d0f1270e3c8f253fb86a6d8f0b4e/itg-news--2016-2-download-akkordeon-data.pdf",
+    "id": "i40",
+    "pages": 12,
+    "editorial": "Where is the 5G network heading?",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Teil 1: 5G-Forschung und Entwicklung",
+        "authors": "Dr. Werner Mohr",
+        "pages": "4–7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Teil 2: 5G-Standardisierung",
+        "authors": "Dr. Joachim Sachs; Dr. Michael Meyer",
+        "pages": "8–10",
+        "kind": "scientific"
+      },
+      {
+        "title": "Fernsehübertragung mit LTE/5G",
+        "authors": "As printed",
+        "pages": "3",
+        "kind": "scientific"
+      },
+      {
+        "title": "Schutz- und Automatisierungstechnik in aktiven Verteilnetzen (ETG/ITG study)",
+        "authors": "As printed on the cover",
+        "pages": "1",
+        "kind": "committee"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Copper and fibre infrastructures",
+      "Radar and localisation cooperation"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Prof. Dr. rer. nat. habil. Carmelita Görg (15 Aug 1950 – 19 Feb 2016)"
+    ],
+    "notes": [
+      "Personalia: Albert Heuberger."
+    ]
+  },
+  {
+    "year": 2016,
+    "label": "Januar 2016",
+    "nr": "01/2016",
+    "topic": "5G technologies for the tactile Internet (community issue)",
+    "contrib": "Mostly conferences. Scientific thread: 5G for tactile Internet and realistic acoustic environments for audiology.",
+    "pdf": "/resource/blob/839620/abfdd7b26e30f99c897864f92792f06f/itg-news--2016-1-download-akkordeon-data.pdf",
+    "id": "i41",
+    "pages": 24,
+    "editorial": "Community issue; scientific thread 5G for the tactile Internet.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "5G-Technologien für das Taktile Internet",
+        "authors": "Prof. Dr. rer. nat. Michael Menth; Dr.-Ing. Joachim Sachs; Prof. Dr.-Ing. Christian Wietfeld",
+        "pages": "15–17",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Zukunft der Netze, Tübingen",
+      "POF conference (O. Ziemann, R. Kruglov)",
+      "ICCE-Berlin 5 years",
+      "Interspeech (S. Möller)",
+      "Automotive antennas",
+      "Performance/reliability of communication networks (B. E. Wolfinger)"
+    ],
+    "awards": [
+      "ITG-Preise 2016"
+    ],
+    "obituaries": [],
+    "notes": [
+      "Personalia including Tim Fingscheidt as new FA speaker."
+    ]
+  },
+  {
+    "year": 2015,
+    "label": "Oktober 2015",
+    "nr": "04/2015",
+    "topic": "Photonics, radar/SAR and radio-resource management",
+    "contrib": "Workshop reports on photonic components, image communication, radar/SAR and new RRM concepts (anticipation, cloud RAN, collaborative nets).",
+    "pdf": "/resource/blob/839636/279fbbc1f454a0965c80a6905fe34441/itg-news--2015-4-download-akkordeon-data.pdf",
+    "id": "i42",
+    "pages": 12,
+    "editorial": "Photonics, radar/SAR and radio-resource management (workshop reports).",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Zukunftstrends der Modultechnik für photonische Komponenten",
+        "authors": "Prof. Dr.-Ing. André Kaup; Prof. Dr. Ulrich Fischer-Hirchert (as printed with the photonics report)",
+        "pages": "2",
+        "kind": "event"
+      },
+      {
+        "title": "Expertenaustausch zu Radio-Resource-Management-Konzepten",
+        "authors": "Prof. Dr.-Ing. Wolfgang Kellerer; Prof. Dr. rer. nat. Dirk Staehle",
+        "pages": "4–5",
+        "kind": "event"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Zukunftstrends photonischer Modultechnik (K.-D. Lang, U. Hollenbach)",
+      "Young scientists / image communication",
+      "University of Tsukuba visit"
+    ],
+    "awards": [],
+    "obituaries": [
+      "Prof. Dr. sc. techn. Dr. h. c. mult. Alfred Fettweis (tribute)"
+    ],
+    "notes": [
+      "Personalia: Gerhard M. Sessler tribute notes."
+    ]
+  },
+  {
+    "year": 2015,
+    "label": "Juli 2015",
+    "nr": "03/2015",
+    "topic": "Simulation in micro-/nanoelectronics",
+    "contrib": "Feature on the evolution of TCAD/simulation for micro- and nanoelectronics; surrounding reports on 5G, smart antennas, Industry 4.0 and ICMIM radar-for-mobility.",
+    "pdf": "/resource/blob/839670/74d56e63a6717463bd4514c29fa3519b/itg-news--2015-3-download-akkordeon-data.pdf",
+    "id": "i43",
+    "pages": 16,
+    "editorial": "Simulation in micro-/nanoelectronics.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Entwicklung der Simulation in der Mikro-/Nanoelektronik",
+        "authors": "Prof. Dr.-Ing. habil. (TCAD feature as printed)",
+        "pages": "9–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "ITG-Fachbereich 8 „Mikro- und Nanoelektronik“",
+        "authors": "As printed",
+        "pages": "12",
+        "kind": "committee"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Mobile communications trends (R. Tönjes)",
+      "ICMIM 2015 radar-for-mobility (W. Wiesbeck, T. Zwick)",
+      "Industrie 4.0",
+      "Networked systems",
+      "Smart antennas",
+      "Broadband technologies"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "25 years of FG Audiologische Akustik (B. U. Seeber, W. Mathis)."
+    ]
+  },
+  {
+    "year": 2015,
+    "label": "April 2015",
+    "nr": "02/2015",
+    "topic": "5G as the next mobile-generation challenge",
+    "contrib": "Website listing only: broadband/net neutrality, 5G, SCC 2015, optical-component modelling, automation communications. No PDF on the VDE site.",
+    "pdf": null,
+    "id": "i44",
+    "pages": null,
+    "editorial": "Listed on the VDE website without a downloadable PDF.",
+    "interview": null,
+    "articles": [],
+    "startups": [],
+    "events": [],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Website listing only: broadband/net neutrality, 5G, SCC 2015, optical-component modelling, automation communications.",
+      "Oktober 2014 is not on the site either; this is the only numbered gap with a listing but no file."
+    ]
+  },
+  {
+    "year": 2015,
+    "label": "Januar 2015",
+    "nr": "01/2015",
+    "topic": "NFV and SDN",
+    "contrib": "Research questions and use cases for virtual network functions (analysis, decomposition); 5G network visualization; THz radio systems.",
+    "pdf": "/resource/blob/839690/f3d58b19bf812d9adb4bb2ee2be177cf/itg-news--2015-1-download-akkordeon-data.pdf",
+    "id": "i45",
+    "pages": 32,
+    "editorial": "NFV and SDN.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "NFV/SDN Teil 1: Forschungsfragen und Anwendungsfälle",
+        "authors": "M.Sc. Arsany Basta; Prof. Dr.-Ing. Wolfgang Kellerer; Dr. rer. nat. Thomas Zinner; Prof. Dr.-Ing. Phuoc Tran-Gia",
+        "pages": "10–12",
+        "kind": "scientific"
+      },
+      {
+        "title": "Teil 2: Prototypisierung von virtualisierten Telekommunikationsnetzen",
+        "authors": "M.Sc. Giuseppe Carella; Dr.-Ing. Marius Corici; Dr.-Ing. Julius Mueller; Prof. Dr. Thomas Magedanz",
+        "pages": "13–16",
+        "kind": "scientific"
+      },
+      {
+        "title": "Teil 3: Konvergente Lösungen",
+        "authors": "Dr. Andreas Gladisch",
+        "pages": "17–19",
+        "kind": "scientific"
+      },
+      {
+        "title": "Teil 4: Virtualisierung von Telekommunikationsdiensten",
+        "authors": "As printed",
+        "pages": "20–21",
+        "kind": "scientific"
+      },
+      {
+        "title": "Teil 5: SDN und NFV aus der Sicht des Netzanbieters",
+        "authors": "As printed",
+        "pages": "22–24",
+        "kind": "scientific"
+      },
+      {
+        "title": "Virtualisierung in 5G-Mobilfunknetzen",
+        "authors": "Dr.-Ing. Dirk Wübben; Dr.-Ing. Peter Matthias R. Rost",
+        "pages": "25",
+        "kind": "scientific"
+      },
+      {
+        "title": "THz / innovative radio systems (cover thread)",
+        "authors": "Prof. Dr.-Ing. Thomas Kürner; Dr.-Ing. Joachim Sachs; Prof. Dr.-Ing. Christian Wietfeld",
+        "pages": "3 / 8",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Digital speech communication (W. Kellermann, H. Löllmann, P. Vary)",
+      "Zukunft der Netze, Braunschweig",
+      "Digital media",
+      "Industrie 4.0 und Echtzeit"
+    ],
+    "awards": [
+      "60 Jahre ITG"
+    ],
+    "obituaries": [],
+    "notes": []
+  },
+  {
+    "year": 2014,
+    "label": "Juli 2014",
+    "nr": "03/2014",
+    "topic": "Imaging radar and ITS / optical comms (mixed issue)",
+    "contrib": "Imaging radar in the 21st century; intelligent transport systems and spectrum; optical mode multiplexing; circuit design/verification.",
+    "pdf": "/resource/blob/839698/adbdf1841f505f135022edb552741e1a/itg-news-2014-3-download-akkordeon-data.pdf",
+    "id": "i46",
+    "pages": 16,
+    "editorial": "Imaging radar and ITS / optical comms (mixed issue).",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Bildgebendes Radar im 21. Jahrhundert",
+        "authors": "Prof. Dr. Joachim Ender",
+        "pages": "9–12",
+        "kind": "scientific"
+      },
+      {
+        "title": "Intelligente Systeme für den Verkehr der Zukunft",
+        "authors": "Dr. Jürgen Ruf (and co-authors as printed)",
+        "pages": "2–3",
+        "kind": "scientific"
+      },
+      {
+        "title": "Entwurf und Verifikation von Schaltungen und Systemen",
+        "authors": "As printed",
+        "pages": "4",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "ITG Mitgliederversammlung 2014",
+      "Broadband technology",
+      "„Brauchen wir noch Glasfaser?“"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "New ITG position papers."
+    ]
+  },
+  {
+    "year": 2014,
+    "label": "April 2014",
+    "nr": "02/2014",
+    "topic": "5G PPP and mobile TV distribution",
+    "contrib": "EU 5G Public-Private Partnership in Horizon 2020; future of TV for mobile reception vs cellular; NFV/SDN in mobile networks.",
+    "pdf": "/resource/blob/839710/a1b930d421dd89cb20fdebb488e99718/itg-news-2014-2-download-akkordeon-data.pdf",
+    "id": "i47",
+    "pages": 12,
+    "editorial": "5G PPP and mobile TV distribution.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "5G Public-Private-Partnership in Horizon 2020 der EU-Kommission",
+        "authors": "Dr. Werner Mohr",
+        "pages": "2–3",
+        "kind": "scientific"
+      },
+      {
+        "title": "Mobile Network (Function) Virtualization and Software Defined Networking",
+        "authors": "Prof. Dr. Wolfgang Kellerer; Dr. Dirk Staehle",
+        "pages": "5",
+        "kind": "scientific"
+      },
+      {
+        "title": "Die Zukunft der TV-Verbreitung für den mobilen Empfang",
+        "authors": "Prof. Dr.-Ing. André Kaup",
+        "pages": "7–9",
+        "kind": "scientific"
+      },
+      {
+        "title": "Eine zweite Digitale Dividende?",
+        "authors": "As printed",
+        "pages": "10",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "CeBIT 2014 with ITG activities",
+      "Audio quality"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Personalia: A. Kaup, J.-R. Ohm, K. Wünstel."
+    ]
+  },
+  {
+    "year": 2014,
+    "label": "Januar 2014",
+    "nr": "01/2014",
+    "topic": "IT security and privacy",
+    "contrib": "Can ICT ever be absolutely secure?; IT security for Industrie 4.0 and embedded systems; navigation (GPS/GLONASS/BeiDou).",
+    "pdf": "/resource/blob/839732/a433ab598b24c38dbf2edb2bc2d076b5/itg-news-2014-1-download-akkordeon-data.pdf",
+    "id": "i48",
+    "pages": 28,
+    "editorial": "IT security and privacy.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Themenschwerpunkt IT-Security and Privacy",
+        "authors": "Prof. Dr. Claudia Eckert",
+        "pages": "8–11",
+        "kind": "scientific"
+      },
+      {
+        "title": "Die Bedeutung der IT-Sicherheit / Netzwerke schützen",
+        "authors": "Prof. Dr.-Ing. Günter Schäfer; Dr.-Ing. Michael Rossberg",
+        "pages": "12–15",
+        "kind": "scientific"
+      },
+      {
+        "title": "Kryptographie: Methoden und Metapher",
+        "authors": "As printed",
+        "pages": "16–19",
+        "kind": "scientific"
+      },
+      {
+        "title": "Persönlichkeitsschutz in einer vernetzten Welt",
+        "authors": "Prof. Dr. Alexander Rossnagel",
+        "pages": "20–23",
+        "kind": "scientific"
+      },
+      {
+        "title": "Künftige Wege in der Navigation",
+        "authors": "Prof. Dr. Dr. Wolfgang A. Halang; Prof. Dr. Uwe-Carsten Fiebig",
+        "pages": "2–3",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Highest security requirements",
+      "SDN to innovative applications",
+      "Performance of communication networks (B. E. Wolfinger)"
+    ],
+    "awards": [
+      "Ausgezeichnete Mitglieder"
+    ],
+    "obituaries": [
+      "Prof. Dr. phil. nat. Dietrich Wolf (tribute)"
+    ],
+    "notes": [
+      "Personalia: Dirk Heberling, Peter Knott, Joachim Sachs."
+    ]
+  },
+  {
+    "year": 2013,
+    "label": "Oktober 2013",
+    "nr": "04/2013",
+    "topic": "Software-defined networking",
+    "contrib": "Making the Internet more flexible with SDN: principles, applications, benefits and challenges.",
+    "pdf": "/resource/blob/839774/750a279753b119aff0bf8d9231808bbd/itg-news-2013-4-download-akkordeon-data.pdf",
+    "id": "i49",
+    "pages": 12,
+    "editorial": "Software-defined networking.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Das Internet flexibler gestalten und dynamischer steuern (SDN)",
+        "authors": "As printed",
+        "pages": "6–9",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Worldwide radar family, Dresden (H. Rohling)",
+      "Hochschule Harz (U. Fischer-Hirchert)"
+    ],
+    "awards": [
+      "Preisverleihung der ITG in Berlin"
+    ],
+    "obituaries": [],
+    "notes": [
+      "New working group on life cycles; E-books in research and teaching."
+    ]
+  },
+  {
+    "year": 2013,
+    "label": "Juli 2013",
+    "nr": "03/2013",
+    "topic": "Millimetre-wave mobile radio?",
+    "contrib": "Cover question on mmWave cellular; 5G/multimedia, packaging, smart grids, circuit simulation, TV after HDTV.",
+    "pdf": "/resource/blob/839786/b836755859afcddc8c6dfcd5809d41c2/itg-news-2013-3-download-akkordeon-data.pdf",
+    "id": "i50",
+    "pages": 16,
+    "editorial": "Millimetre-wave mobile radio?",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Kommt der Millimeterwellen-Mobilfunk?",
+        "authors": "Prof. Dr.-Ing. Ingo Wolff (editorial cover question)",
+        "pages": "1",
+        "kind": "scientific"
+      },
+      {
+        "title": "Kluge Empfänger / Advances in video coding",
+        "authors": "Prof. Dr.-Ing. Thomas Wiegand; Dr.-Ing. Detlev Marpe",
+        "pages": "9–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "ITG-Fachausschuss 3.2 „Digitale Bildcodierung“",
+        "authors": "Dr.-Ing. Ralf Schäfer",
+        "pages": "14",
+        "kind": "committee"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Multimedia services and 5G (R. Tönjes)",
+      "Packaging (C. Schäffer)",
+      "Smart grids",
+      "Circuit simulation (C. Haubelt, D. Timmermann)",
+      "Future of television"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": [
+      "Personalia: Klaus Wehrle; Wolfgang Endemann."
+    ]
+  },
+  {
+    "year": 2013,
+    "label": "April 2013",
+    "nr": "02/2013",
+    "topic": "ICT for the future energy grid; optical and heterogeneous nets",
+    "contrib": "Open optical networks (fibre as more than a pipe); heterogeneous nets (pico/femto cells, spectrum reuse) to raise capacity.",
+    "pdf": "/resource/blob/839806/dc14a1b92672c4bb95eb60013f82024e/itg-news-2013-2-download-akkordeon-data.pdf",
+    "id": "i51",
+    "pages": 16,
+    "editorial": "ICT for the future energy grid; optical and heterogeneous nets.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Offene optische Netze nutzen",
+        "authors": "Prof. Dr.-Ing. Christian-A. Bunge",
+        "pages": "7",
+        "kind": "scientific"
+      },
+      {
+        "title": "Heterogene Netze etablieren",
+        "authors": "Prof. Dr.-Ing. Berthold Lankl",
+        "pages": "8–10",
+        "kind": "scientific"
+      },
+      {
+        "title": "Kostenoptimierte Planung von optischen Zugangsnetzen",
+        "authors": "Dr. Eugen Lach",
+        "pages": "12",
+        "kind": "scientific"
+      },
+      {
+        "title": "Sichere und nachhaltige Kommunikationsnetze entwickeln",
+        "authors": "As printed",
+        "pages": "13",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Assisted living",
+      "Home and access nets",
+      "ARCS / architecture acceleration (W. Karl)"
+    ],
+    "awards": [],
+    "obituaries": [],
+    "notes": []
+  },
+  {
+    "year": 2013,
+    "label": "Januar 2013",
+    "nr": "01/2013",
+    "topic": "Missed the fibre connection? Broadband FTTH",
+    "contrib": "Fibre as future economic infrastructure; re-municipalisation of telecom; energy-economy of the future. Opening issue of the online archive.",
+    "pdf": "/resource/blob/839814/b94036c25648e91243d026f69e527510/itg-news-2013-1-download-akkordeon-data.pdf",
+    "id": "i52",
+    "pages": 20,
+    "editorial": "Opening issue of the online archive: missed the fibre connection? Broadband FTTH.",
+    "interview": null,
+    "articles": [
+      {
+        "title": "Den Glasfaser-Anschluss verpasst? Ein Rück- und ein Ausblick",
+        "authors": "Prof. Dr.-Ing. Ingo Wolff",
+        "pages": "1",
+        "kind": "scientific"
+      },
+      {
+        "title": "Die Re-Kommunalisierung hat die TK-Industrie erreicht",
+        "authors": "As printed",
+        "pages": "10–13",
+        "kind": "scientific"
+      },
+      {
+        "title": "Energie-Wirtschaft der Zukunft",
+        "authors": "As printed",
+        "pages": "19",
+        "kind": "scientific"
+      }
+    ],
+    "startups": [],
+    "events": [
+      "Intelligent objects, Munich",
+      "Circuit/system reliability (R. Drechsler, W. A. Halang)",
+      "Audio signal processing",
+      "Future communication networks / digital-world radars",
+      "Home as health location"
+    ],
+    "awards": [
+      "Ausgezeichnete Mitglieder; Ingo Wolff certificate"
+    ],
+    "obituaries": [],
+    "notes": [
+      "ITG-FA 8.6 Vacuum electronics and displays."
+    ]
+  }
+];
+
+const years = [...new Set(ISSUES.map(i => i.year))];
+let year = "all";
+let selected = ISSUES[0].id;
+const yearsEl = document.getElementById("years");
+const listEl = document.getElementById("list");
+const qEl = document.getElementById("q");
+const countEl = document.getElementById("count");
+const paneEl = document.getElementById("pane");
+
+function chip(label, value) {
+  const b = document.createElement("button");
+  b.textContent = label;
+  b.dataset.year = value;
+  b.onclick = () => { year = value; render(); };
+  return b;
+}
+yearsEl.appendChild(chip("All years", "all"));
+years.forEach(y => yearsEl.appendChild(chip(String(y), String(y))));
+
+function hay(i) {
+  const bits = [i.label, i.nr, i.topic, i.contrib, i.editorial || ""];
+  (i.articles || []).forEach(a => bits.push(a.title, a.authors));
+  (i.startups || []).forEach(a => bits.push(a.title, a.authors));
+  (i.events || []).forEach(x => bits.push(x));
+  (i.awards || []).forEach(x => bits.push(x));
+  (i.obituaries || []).forEach(x => bits.push(x));
+  (i.notes || []).forEach(x => bits.push(x));
+  if (i.interview) bits.push(i.interview.title, i.interview.person, i.interview.note || "");
+  return bits.join(" ").toLowerCase();
+}
+
+function filtered() {
+  const q = qEl.value.trim().toLowerCase();
+  return ISSUES.filter(i => {
+    if (year !== "all" && String(i.year) !== year) return false;
+    if (!q) return true;
+    return hay(i).includes(q);
+  });
+}
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function listBlock(title, items, mapFn) {
+  if (!items || !items.length) return "";
+  return `<h3>${esc(title)}</h3>` + mapFn(items);
+}
+
+function renderPane(i) {
+  if (!i) {
+    paneEl.innerHTML = `<p class="empty">Select an issue in the list.</p>`;
+    return;
+  }
+  const href = i.pdf ? BASE + i.pdf : "";
+  const pdf = i.pdf
+    ? `<a class="pdf" href="${href}" target="_blank" rel="noopener">Open public PDF</a>`
+    : `<span class="pdf missing">No PDF on website</span>`;
+  const pages = i.pages ? `${i.pages} pages` : "";
+  let html = `<h2>${esc(i.label)}</h2>
+    <div class="meta">${esc(i.nr)}${pages ? " · " + pages : ""}</div>
+    <div class="row">${pdf}</div>
+    <h3>Main topic</h3>
+    <p>${esc(i.topic)}</p>
+    <h3>Main scientific contributions</h3>
+    <p>${esc(i.contrib)}</p>`;
+  if (i.editorial && i.editorial !== i.contrib) {
+    html += `<h3>About this issue</h3><p>${esc(i.editorial)}</p>`;
+  }
+  if (i.interview) {
+    html += `<h3>Interview</h3>
+      <div class="art"><div class="t">${esc(i.interview.title)}</div>
+      <div class="a">${esc(i.interview.person)}</div>
+      ${i.interview.note ? `<div class="p">${esc(i.interview.note)}</div>` : ""}</div>`;
+  }
+  const arts = (i.articles || []).filter(a => a.kind === "scientific" || !a.kind);
+  const otherArts = (i.articles || []).filter(a => a.kind && a.kind !== "scientific");
+  html += listBlock("Scientific articles", arts, items => items.map(a =>
+    `<div class="art"><div class="t">${esc(a.title)}</div>
+     <div class="a">${esc(a.authors)}</div>
+     ${a.pages ? `<div class="p">pp. ${esc(a.pages)}</div>` : ""}</div>`
+  ).join(""));
+  html += listBlock("Other printed articles", otherArts, items => items.map(a =>
+    `<div class="art"><div class="t">${esc(a.title)}</div>
+     <div class="a">${esc(a.authors)}${a.kind ? " · " + esc(a.kind) : ""}</div>
+     ${a.pages ? `<div class="p">pp. ${esc(a.pages)}</div>` : ""}</div>`
+  ).join(""));
+  html += listBlock("Start-ups / Durchstarter", i.startups, items => items.map(a =>
+    `<div class="art"><div class="t">${esc(a.title)}</div><div class="a">${esc(a.authors)}</div></div>`
+  ).join(""));
+  html += listBlock("Events and reports", i.events, items =>
+    `<ul class="plain">${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+  html += listBlock("Awards and congratulations", i.awards, items =>
+    `<ul class="plain">${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+  html += listBlock("Obituaries / Nachrufe", i.obituaries, items =>
+    `<ul class="plain">${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+  html += listBlock("Other relevant information", i.notes, items =>
+    `<ul class="plain">${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+  if (!arts.length && !otherArts.length && !(i.startups || []).length) {
+    html += `<p class="empty">No scientific feature list for this issue (society news, or no PDF).</p>`;
+  }
+  paneEl.innerHTML = html;
+}
+
+function render() {
+  yearsEl.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.year === year));
+  const rows = filtered();
+  countEl.textContent = rows.length + " of " + ISSUES.length + " issues";
+  if (!rows.some(i => i.id === selected) && rows.length) selected = rows[0].id;
+  listEl.innerHTML = rows.map(i => `
+    <button type="button" class="issue${i.id === selected ? " sel" : ""}" data-id="${i.id}">
+      <h2>${esc(i.label)}</h2>
+      <div class="meta">${esc(i.nr)} · ${(i.articles || []).filter(a => !a.kind || a.kind === "scientific").length} scientific article(s)</div>
+      <p class="topic">${esc(i.topic)}</p>
+    </button>`).join("");
+  listEl.querySelectorAll(".issue").forEach(btn => {
+    btn.onclick = () => {
+      selected = btn.dataset.id;
+      render();
+      if (window.matchMedia("(max-width: 860px)").matches) {
+        paneEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+  });
+  renderPane(ISSUES.find(i => i.id === selected));
+}
+qEl.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
