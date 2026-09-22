@@ -105,8 +105,9 @@
       font-weight: 650;
     }
     .tabs button.active { background: var(--ink); color: #fff; }
-    .subtabs { margin-top: 0; background: var(--paper); }
+    .subtabs { margin-top: 0; background: var(--paper); border-radius: 18px; width: 100%; }
     .subtabs button.active { background: var(--teal); }
+    .cal.compact .day { min-height: 92px; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -304,7 +305,7 @@
     </div>
     <div class="tabs" role="tablist" aria-label="Hauptbereiche">
       <button class="active" data-tab="plan" role="tab" aria-selected="true">Planung</button>
-      <button data-tab="cal" role="tab" aria-selected="false">Kalender Apr–Jul</button>
+      <button data-tab="cal" role="tab" aria-selected="false">Kalender</button>
       <button data-tab="list" role="tab" aria-selected="false">Alle Veranstaltungen</button>
       <button data-tab="year" role="tab" aria-selected="false">Jahresüberblick</button>
       <button data-tab="notes" role="tab" aria-selected="false">Hinweise</button>
@@ -317,7 +318,7 @@
         <h2>Ihre Woche wählen</h2>
         <p class="muted">Starttag setzen oder eine empfohlene Woche anklicken. Dauer standardmäßig 5 Werktage (Mo–Fr).</p>
         <div class="controls">
-          <label>Start <input type="date" id="startDate" value="2027-06-14" min="2027-04-01" max="2027-07-31"></label>
+          <label>Start <input type="date" id="startDate" value="2027-06-14" min="2027-01-01" max="2027-12-31"></label>
           <label>Dauer
             <select id="duration">
               <option value="5" selected>5 Tage (Mo–Fr)</option>
@@ -351,7 +352,7 @@
     <section class="tab-panel" id="tab-cal">
       <div class="panel">
         <div class="row" style="justify-content:space-between;align-items:center">
-          <h2>Kalender April–Juli 2027</h2>
+          <h2>Kalender 2027</h2>
           <div class="legend">
             <span><i class="swatch org-vde"></i>VDE ITG</span>
             <span><i class="swatch org-ieee"></i>IEEE</span>
@@ -362,14 +363,26 @@
             <span><i class="swatch org-other"></i>Weitere</span>
           </div>
         </div>
-        <p class="muted tiny">Event-Kachel öffnet das Detail-Popup mit Website-Link. Klick auf die Tageszahl zeigt alle Events des Tages. Filter gelten auch in den anderen Tabs.</p>
+        <p class="muted tiny">Monats-, Quartals- oder Jahresansicht. Event-Kachel öffnet das Detail-Popup mit Website-Link. Klick auf die Tageszahl zeigt alle Events des Tages.</p>
         <div class="controls" id="filters"></div>
         <div class="tabs subtabs" id="monthTabs" role="tablist" aria-label="Monate">
-          <button class="active" data-month="4">April</button>
+          <button data-month="1">Jan</button>
+          <button data-month="2">Feb</button>
+          <button data-month="3">Mär</button>
+          <button data-month="4">Apr</button>
           <button data-month="5">Mai</button>
-          <button data-month="6">Juni</button>
-          <button data-month="7">Juli</button>
-          <button data-month="all">Alle vier</button>
+          <button class="active" data-month="6">Jun</button>
+          <button data-month="7">Jul</button>
+          <button data-month="8">Aug</button>
+          <button data-month="9">Sep</button>
+          <button data-month="10">Okt</button>
+          <button data-month="11">Nov</button>
+          <button data-month="12">Dez</button>
+          <button data-month="q1">Q1</button>
+          <button data-month="q2">Q2</button>
+          <button data-month="q3">Q3</button>
+          <button data-month="q4">Q4</button>
+          <button data-month="all">Ganzes Jahr</button>
         </div>
         <div id="calendars"></div>
       </div>
@@ -512,13 +525,17 @@
       { date: "2027-05-06", name: "Christi Himmelfahrt" },
       { date: "2027-05-17", name: "Pfingstmontag" },
       { date: "2027-05-27", name: "Fronleichnam (BY/BW u. a.)" },
+      { date: "2027-08-15", name: "Mariä Himmelfahrt (BY)" },
       { date: "2027-10-03", name: "Tag der Deutschen Einheit" },
       { date: "2027-11-01", name: "Allerheiligen (BY)" },
+      { date: "2027-11-17", name: "Buß- und Bettag (SN)" },
       { date: "2027-12-25", name: "1. Weihnachtsfeiertag" },
       { date: "2027-12-26", name: "2. Weihnachtsfeiertag" }
     ];
 
     const FERIEN = [
+      { name: "BY Frühjahrsferien", start: "2027-02-08", end: "2027-02-12" },
+      { name: "BY Osterferien", start: "2027-03-22", end: "2027-04-02" },
       { name: "BY Pfingstferien", start: "2027-05-18", end: "2027-05-28" },
       { name: "HE/RP/SL Sommerferien", start: "2027-06-28", end: "2027-08-06" },
       { name: "BE/BB/HH Sommerferien", start: "2027-07-01", end: "2027-08-14" },
@@ -528,7 +545,9 @@
       { name: "SN/ST/TH Sommerferien", start: "2027-07-10", end: "2027-08-20" },
       { name: "NRW Sommerferien", start: "2027-07-19", end: "2027-08-31" },
       { name: "BW Sommerferien", start: "2027-07-29", end: "2027-09-11" },
-      { name: "BY Sommerferien", start: "2027-08-02", end: "2027-09-13" }
+      { name: "BY Sommerferien", start: "2027-08-02", end: "2027-09-13" },
+      { name: "BY Herbstferien", start: "2027-11-02", end: "2027-11-05" },
+      { name: "BY Weihnachtsferien", start: "2027-12-24", end: "2028-01-07" }
     ];
 
     const CANDIDATE_WEEKS = [
@@ -550,7 +569,11 @@
       { start: "2027-07-26", label: "26.–30.07.", hint: "Nach IETF, Ferienhoch" }
     ];
 
-    const MONTH_NAMES = { 4: "April", 5: "Mai", 6: "Juni", 7: "Juli" };
+    const MONTH_NAMES = {
+      1: "Januar", 2: "Februar", 3: "März", 4: "April", 5: "Mai", 6: "Juni",
+      7: "Juli", 8: "August", 9: "September", 10: "Oktober", 11: "November", 12: "Dezember"
+    };
+    const MONTH_GROUPS = { q1: [1, 2, 3], q2: [4, 5, 6], q3: [7, 8, 9], q4: [10, 11, 12], all: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] };
     const activeOrgs = new Set(ORGS.map(o => o.id));
     let sortMode = "start";
     let calMonth = "6";
@@ -693,13 +716,13 @@
       };
     }
 
-    function monthHtml(year, month) {
+    function monthHtml(year, month, compact) {
       const first = new Date(year, month - 1, 1);
       const startPad = (first.getDay() + 6) % 7;
       const gridStart = addDays(first, -startPad);
       const sel = rangeDays(document.getElementById("startDate").value, document.getElementById("duration").value);
       const heads = ["KW", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(h => `<div class="head">${h}</div>`).join("");
-      let html = `<div class="month-block"><h3>${MONTH_NAMES[month]} 2027</h3><div class="cal">${heads}`;
+      let html = `<div class="month-block"><h3>${MONTH_NAMES[month]} 2027</h3><div class="cal${compact ? " compact" : ""}">${heads}`;
       for (let i = 0; i < 42; i++) {
         const d = addDays(gridStart, i);
         if (i % 7 === 0) html += `<div class="wk">${isoWeek(d)}</div>`;
@@ -731,8 +754,9 @@
 
     function renderCalendars() {
       const root = document.getElementById("calendars");
-      const months = calMonth === "all" ? [4, 5, 6, 7] : [Number(calMonth)];
-      root.innerHTML = months.map(m => monthHtml(2027, m)).join("");
+      const months = MONTH_GROUPS[calMonth] || [Number(calMonth)];
+      const compact = months.length > 1;
+      root.innerHTML = months.map(m => monthHtml(2027, m, compact)).join("");
       bindCalendar(root);
       document.querySelectorAll("#monthTabs [data-month]").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.month === calMonth);
