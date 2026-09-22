@@ -12,12 +12,10 @@
       --card: #fffdf8;
       --line: #e4d9c8;
       --wine: #8a2c3c;
-      --wine-soft: #c45a6a;
       --teal: #0f6e6b;
       --teal-soft: #d5efed;
       --gold: #c48a2a;
       --gold-soft: #f4e4c2;
-      --slate: #5c6b8a;
       --ok: #2f7d4a;
       --warn: #b35c14;
       --bad: #9b2434;
@@ -88,20 +86,41 @@
     .chip { cursor: pointer; user-select: none; }
     .legend { display: flex; flex-wrap: wrap; gap: 10px 16px; font-size: 13px; color: var(--ink-soft); }
     .swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 18px 0 0;
+      padding: 6px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .tabs button {
+      border: 0;
+      background: transparent;
+      font-weight: 650;
+    }
+    .tabs button.active { background: var(--ink); color: #fff; }
+    .subtabs { margin-top: 0; background: var(--paper); }
+    .subtabs button.active { background: var(--teal); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
     .cal {
       display: grid;
-      grid-template-columns: 70px repeat(7, 1fr);
+      grid-template-columns: 52px repeat(7, 1fr);
       gap: 4px;
       font-size: 13px;
     }
-    .cal .head, .cal .wk, .cal .day {
-      padding: 8px;
-      border-radius: 10px;
-    }
+    .cal .head, .cal .wk, .cal .day { padding: 7px; border-radius: 10px; }
     .cal .head { color: var(--ink-soft); font-weight: 700; text-align: center; }
     .cal .wk { background: #f3eee4; font-weight: 700; display: flex; align-items: center; justify-content: center; }
     .cal .day {
-      min-height: 108px;
+      min-height: 118px;
       background: #fff;
       border: 1px solid var(--line);
       position: relative;
@@ -109,12 +128,19 @@
     .cal .day.out { opacity: .38; }
     .cal .day.holiday { background: #f8e8e8; }
     .cal .day.selected { outline: 2px solid var(--teal); background: var(--teal-soft); }
-    .cal .day.overlap { background: #fde8e8; }
-    .cal .num { font-weight: 700; }
-    .cal .dow { color: var(--ink-soft); font-size: 11px; }
+    .cal .num {
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .cal .hol-label { font-weight: 500; color: var(--bad); font-size: 10px; }
     .ev {
+      display: block;
+      width: 100%;
       margin-top: 4px;
-      padding: 2px 6px;
+      padding: 3px 6px;
       border-radius: 6px;
       color: #fff;
       font-size: 11px;
@@ -122,7 +148,12 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      border: 0;
+      text-align: left;
+      cursor: pointer;
     }
+    .ev:hover { filter: brightness(1.08); }
+    .ev.more { background: #5c6b8a; }
     .org-vde { background: #8a2c3c; }
     .org-ieee { background: #00629b; }
     .org-acm { background: #1b7a4a; }
@@ -130,8 +161,6 @@
     .org-gi { background: #b35c14; }
     .org-ietf { background: #0f6e6b; }
     .org-other { background: #5c6b8a; }
-    .org-holiday { background: #9b2434; }
-    .org-ferien { background: #c48a2a; }
     .muted { color: var(--ink-soft); }
     .tiny { font-size: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -169,6 +198,16 @@
     .bar { height: 8px; background: #eee; border-radius: 99px; overflow: hidden; margin: 8px 0 4px; }
     .bar > i { display: block; height: 100%; background: var(--ok); }
     .conflict-list { margin: 0; padding-left: 18px; }
+    .conflict-list button.linkish, button.linkish {
+      background: none;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+      color: var(--teal);
+      font: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+    }
     .note {
       background: var(--gold-soft);
       border-left: 4px solid var(--gold);
@@ -180,14 +219,69 @@
     .year { overflow-x: auto; }
     .gantt { min-width: 1100px; }
     .gantt-row { display: grid; grid-template-columns: 240px 1fr; gap: 8px; margin-bottom: 4px; align-items: center; }
-    .gantt-label { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gantt-label {
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: none;
+      border: 0;
+      padding: 0;
+      border-radius: 0;
+      text-align: left;
+      color: inherit;
+    }
+    .gantt-label:hover { color: var(--teal); }
     .gantt-track { position: relative; height: 18px; background: #f3eee4; border-radius: 99px; }
     .gantt-bar {
-      position: absolute; top: 2px; height: 14px; border-radius: 99px; opacity: .92;
+      position: absolute; top: 2px; height: 14px; border-radius: 99px; opacity: .92; border: 0; cursor: pointer;
     }
     .months { display: grid; grid-template-columns: repeat(12, 1fr); font-size: 11px; color: var(--ink-soft); margin: 0 0 8px 248px; }
+    .month-block { margin-top: 8px; }
+    .month-block h3 { margin-top: 16px; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(22, 20, 31, .45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 40;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border-radius: 20px;
+      max-width: 560px;
+      width: min(560px, 100%);
+      max-height: min(86vh, 720px);
+      overflow: auto;
+      box-shadow: var(--shadow);
+      padding: 22px;
+      position: relative;
+    }
+    .modal h2 { padding-right: 36px; }
+    .modal .close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 50%;
+    }
+    .modal dl { display: grid; grid-template-columns: 110px 1fr; gap: 8px 12px; margin: 12px 0 18px; }
+    .modal dt { color: var(--ink-soft); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .modal dd { margin: 0; }
+    .modal-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .day-events { display: flex; flex-direction: column; gap: 8px; }
+    .day-events button.ev { width: auto; align-self: stretch; }
+
     @media print {
-      button, .controls { display: none !important; }
+      .tabs, button, .controls { display: none !important; }
+      .tab-panel { display: block !important; }
       body { background: #fff; }
       .panel { box-shadow: none; }
     }
@@ -198,117 +292,140 @@
     <p class="kicker">Planungstool · Stand 22. September 2026</p>
     <h1>Kommunikationsnetze 2027</h1>
     <p class="lede">
-      Interaktiver Kalender, um eine <strong>einwöchige Veranstaltung im Juni/Juli 2027</strong>
+      Interaktiver Kalender, um eine <strong>einwöchige Veranstaltung von April bis Juli 2027</strong>
       (z.&nbsp;B. WueWoWAS) zwischen VDE ITG, IEEE, ACM SIGCOMM, SLICES, GI/KuVS und weiteren
-      Netz-Events zu platzieren. Bestätigte Termine und typische Fenster aus den Vorjahren sind getrennt markiert.
+      Netz-Events zu platzieren. Klick auf ein Event öffnet Details und den Link zur Website.
     </p>
     <div class="stats">
       <div class="stat"><b id="nEvents">–</b><span>Events im Datensatz</span></div>
       <div class="stat"><b id="nConfirmed">–</b><span>mit bestätigtem 2027-Datum</span></div>
-      <div class="stat"><b id="nJunJul">–</b><span>im Fenster Juni–Juli</span></div>
+      <div class="stat"><b id="nWindow">–</b><span>im Fenster April–Juli</span></div>
       <div class="stat"><b id="nDE">–</b><span>in Deutschland</span></div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Hauptbereiche">
+      <button class="active" data-tab="plan" role="tab" aria-selected="true">Planung</button>
+      <button data-tab="cal" role="tab" aria-selected="false">Kalender Apr–Jul</button>
+      <button data-tab="list" role="tab" aria-selected="false">Alle Veranstaltungen</button>
+      <button data-tab="year" role="tab" aria-selected="false">Jahresüberblick</button>
+      <button data-tab="notes" role="tab" aria-selected="false">Hinweise</button>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="panel">
-      <h2>Ihre Woche wählen</h2>
-      <p class="muted">Klicken Sie im Kalender auf den Starttag oder nutzen Sie die empfohlenen Fenster. Dauer standardmäßig 5 Werktage (Mo–Fr) bzw. 7 Tage.</p>
-      <div class="controls">
-        <label>Start <input type="date" id="startDate" value="2027-06-14" min="2027-06-01" max="2027-07-31"></label>
-        <label>Dauer
-          <select id="duration">
-            <option value="5" selected>5 Tage (Mo–Fr)</option>
-            <option value="7">7 Tage</option>
-            <option value="3">3 Tage</option>
-            <option value="4">4 Tage</option>
-          </select>
-        </label>
-        <button class="primary" id="analyzeBtn">Konflikte prüfen</button>
-        <button id="bestBtn">Beste Woche vorschlagen</button>
-      </div>
-      <div id="selectionSummary" class="note"></div>
-      <div class="row">
-        <div class="grow">
-          <h3>Überlappende Events</h3>
-          <ul class="conflict-list" id="conflicts"></ul>
+    <section class="tab-panel active" id="tab-plan">
+      <div class="panel">
+        <h2>Ihre Woche wählen</h2>
+        <p class="muted">Starttag setzen oder eine empfohlene Woche anklicken. Dauer standardmäßig 5 Werktage (Mo–Fr).</p>
+        <div class="controls">
+          <label>Start <input type="date" id="startDate" value="2027-06-14" min="2027-04-01" max="2027-07-31"></label>
+          <label>Dauer
+            <select id="duration">
+              <option value="5" selected>5 Tage (Mo–Fr)</option>
+              <option value="7">7 Tage</option>
+              <option value="3">3 Tage</option>
+              <option value="4">4 Tage</option>
+            </select>
+          </label>
+          <button class="primary" id="analyzeBtn">Konflikte prüfen</button>
+          <button id="bestBtn">Beste Woche vorschlagen</button>
         </div>
-        <div class="grow">
-          <h3>Rahmenbedingungen Deutschland</h3>
-          <ul class="conflict-list" id="context"></ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Empfohlene Fenster Juni–Juli 2027</h2>
-      <p class="muted tiny">Score berücksichtigt bestätigte Flagship-Konferenzen stärker als typische Fenster, plus Lage in Deutschland, Sommerferien und Feiertage. Bayern hat im Juni/Juli 2027 keine gesetzlichen Feiertage; Sommerferien BY beginnen erst am 2. August.</p>
-      <div class="score" id="weekScores"></div>
-    </section>
-
-    <section class="panel">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h2>Kalender Juni–Juli 2027</h2>
-        <div class="legend">
-          <span><i class="swatch org-vde"></i>VDE ITG</span>
-          <span><i class="swatch org-ieee"></i>IEEE</span>
-          <span><i class="swatch org-acm"></i>ACM</span>
-          <span><i class="swatch org-slices"></i>SLICES</span>
-          <span><i class="swatch org-gi"></i>GI/KuVS</span>
-          <span><i class="swatch org-ietf"></i>IETF</span>
-          <span><i class="swatch org-other"></i>Weitere</span>
+        <div id="selectionSummary" class="note"></div>
+        <div class="row">
+          <div class="grow">
+            <h3>Überlappende Events</h3>
+            <ul class="conflict-list" id="conflicts"></ul>
+          </div>
+          <div class="grow">
+            <h3>Rahmenbedingungen Deutschland</h3>
+            <ul class="conflict-list" id="context"></ul>
+          </div>
         </div>
       </div>
-      <div class="controls" id="filters"></div>
-      <h3>Juni</h3>
-      <div class="cal" id="calJune"></div>
-      <h3 style="margin-top:18px">Juli</h3>
-      <div class="cal" id="calJuly"></div>
-    </section>
-
-    <section class="panel year">
-      <h2>Jahresüberblick 2027</h2>
-      <p class="muted tiny">Balken über das ganze Jahr. Gestrichelte bzw. halbtransparente Einträge sind typische, noch nicht offiziell datierte Termine.</p>
-      <div class="months" id="monthHeads"></div>
-      <div class="gantt" id="gantt"></div>
-    </section>
-
-    <section class="panel">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h2>Alle Veranstaltungen</h2>
-        <input type="search" id="search" placeholder="Suchen …" style="min-width:220px">
-      </div>
-      <div class="controls">
-        <button class="chip active" data-sort="start">Nach Datum</button>
-        <button class="chip" data-sort="org">Nach Veranstalter</button>
-        <button class="chip" data-sort="de">Deutschland zuerst</button>
-      </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th>Event</th>
-              <th>Ort</th>
-              <th>Veranstalter</th>
-              <th>Status</th>
-              <th>Relevanz</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
+      <div class="panel">
+        <h2>Empfohlene Fenster April–Juli 2027</h2>
+        <p class="muted tiny">Score berücksichtigt bestätigte Flagships stärker als typische Fenster, plus Lage in Deutschland, Sommerferien und Feiertage. Im Mai liegen Himmelfahrt, Pfingsten und Fronleichnam; Bayern-Sommerferien beginnen erst am 2. August.</p>
+        <div class="score" id="weekScores"></div>
       </div>
     </section>
 
-    <section class="panel">
-      <h2>Hinweise zur Interpretation</h2>
-      <ul>
-        <li><strong>Bestätigt:</strong> Datum und Ort für 2027 öffentlich genannt (ComSoc, SIGCOMM, IETF, VDE, Veranstalterseiten).</li>
-        <li><strong>Typisch:</strong> 2027 noch nicht ausgeschrieben. Fenster aus 2025/2026 bzw. Serie (z.&nbsp;B. SLICES Summer School im Juni, MueWoWAS Mitte Juni, NetSys in ungeraden Jahren im September).</li>
-        <li><strong>Hohe Konfliktwirkung für eine DE-Netzwerk-Woche:</strong> EuCNC &amp; 6G Summit (Dublin), VTC-Spring (Hamburg), IETF 129 (Berlin), ICC direkt davor, SIGCOMM direkt danach im August.</li>
-        <li>NetSys 2027 ist als KuVS-Biennale wahrscheinlich, aber ohne Datum. Historisch 2021–2025 jeweils Anfang September – also außerhalb des Juni/Juli-Fensters.</li>
-        <li>WueWoWAS lag 2024–2026 Ende September/Anfang Oktober. Eine Verlagerung in den Frühsommer 2027 trifft auf EuCNC, VTC Hamburg und IETF Berlin.</li>
-      </ul>
+    <section class="tab-panel" id="tab-cal">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h2>Kalender April–Juli 2027</h2>
+          <div class="legend">
+            <span><i class="swatch org-vde"></i>VDE ITG</span>
+            <span><i class="swatch org-ieee"></i>IEEE</span>
+            <span><i class="swatch org-acm"></i>ACM</span>
+            <span><i class="swatch org-slices"></i>SLICES</span>
+            <span><i class="swatch org-gi"></i>GI/KuVS</span>
+            <span><i class="swatch org-ietf"></i>IETF</span>
+            <span><i class="swatch org-other"></i>Weitere</span>
+          </div>
+        </div>
+        <p class="muted tiny">Event-Kachel öffnet das Detail-Popup mit Website-Link. Klick auf die Tageszahl zeigt alle Events des Tages. Filter gelten auch in den anderen Tabs.</p>
+        <div class="controls" id="filters"></div>
+        <div class="tabs subtabs" id="monthTabs" role="tablist" aria-label="Monate">
+          <button class="active" data-month="4">April</button>
+          <button data-month="5">Mai</button>
+          <button data-month="6">Juni</button>
+          <button data-month="7">Juli</button>
+          <button data-month="all">Alle vier</button>
+        </div>
+        <div id="calendars"></div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-list">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h2>Alle Veranstaltungen</h2>
+          <input type="search" id="search" placeholder="Suchen …" style="min-width:220px">
+        </div>
+        <div class="controls">
+          <button class="chip active" data-sort="start">Nach Datum</button>
+          <button class="chip" data-sort="org">Nach Veranstalter</button>
+          <button class="chip" data-sort="de">Deutschland zuerst</button>
+          <button class="chip" data-sort="window">Nur April–Juli</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Event</th>
+                <th>Ort</th>
+                <th>Veranstalter</th>
+                <th>Status</th>
+                <th>Relevanz</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-year">
+      <div class="panel year">
+        <h2>Jahresüberblick 2027</h2>
+        <p class="muted tiny">Balken und Namen sind klickbar. Halbtransparente Einträge sind typische, noch nicht offiziell datierte Termine.</p>
+        <div class="months" id="monthHeads"></div>
+        <div class="gantt" id="gantt"></div>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-notes">
+      <div class="panel">
+        <h2>Hinweise zur Interpretation</h2>
+        <ul>
+          <li><strong>Bestätigt:</strong> Datum und Ort für 2027 öffentlich genannt (ComSoc, SIGCOMM, IETF, VDE, Veranstalterseiten).</li>
+          <li><strong>Typisch:</strong> 2027 noch nicht ausgeschrieben. Fenster aus 2025/2026 bzw. Serie (z.&nbsp;B. SLICES Summer School im Juni, MueWoWAS Mitte Juni, NetSys in ungeraden Jahren im September).</li>
+          <li><strong>Hohe Konfliktwirkung für eine DE-Netzwerk-Woche:</strong> EuCNC &amp; 6G Summit (Dublin), VTC-Spring (Hamburg), IETF 129 (Berlin), ICC Ende Mai/Anfang Juni, INFOCOM und WCNC davor.</li>
+          <li>Mai 2027 ist durch Himmelfahrt (6.5.), Pfingstmontag (17.5.) und Fronleichnam (27.5., BY/BW) plus Pfingstferien (BY 18.–28.5.) unruhig.</li>
+          <li>NetSys 2027 ist als KuVS-Biennale wahrscheinlich, aber ohne Datum. Historisch 2021–2025 jeweils Anfang September.</li>
+          <li>WueWoWAS lag 2024–2026 Ende September/Anfang Oktober. Eine Verlagerung in den Frühsommer 2027 trifft auf EuCNC, VTC Hamburg und IETF Berlin.</li>
+        </ul>
+      </div>
     </section>
   </main>
 
@@ -324,6 +441,13 @@
     Angaben ohne Gewähr; Kalender 2027 sind unvollständig und ändern sich. Zuletzt recherchiert am 22.09.2026.
   </footer>
 
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <button class="close" id="modalClose" aria-label="Schließen">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
   <script>
     const ORGS = [
       { id: "vde", label: "VDE ITG" },
@@ -336,47 +460,47 @@
     ];
 
     const EVENTS = [
-      { name: "IEEE CCNC 2027", start: "2027-01-09", end: "2027-01-12", loc: "Las Vegas, USA", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.comsoc.org/conferences-events/ieee-consumer-communications-and-networking-conference-2027", note: "Consumer communications, CES-Woche." },
-      { name: "IETF 128", start: "2027-03-06", end: "2027-03-12", loc: "Kuala Lumpur, MY", org: "ietf", status: "confirmed", rel: "hoch", url: "https://www.ietf.org/meeting/128/", note: "Internet-Standardisierung." },
-      { name: "KuVS MaLeNe (typisch März)", start: "2027-03-18", end: "2027-03-19", loc: "Deutschland (typisch)", org: "gi", status: "typical", rel: "hoch", url: "https://kuvs.de/fg", note: "2026: 19.–20.03. Augsburg. Machine Learning in Networking." },
-      { name: "VDE ITG GeMiC 2027", start: "2027-03-15", end: "2027-03-17", loc: "Hamburg, DE", org: "vde", status: "confirmed", rel: "mittel", url: "https://www.vde.com/18th_german_microwave_conference_gemic_2027", note: "Mikrowellen, mit ITG." },
-      { name: "ITG SCC 2027", start: "2027-03-15", end: "2027-03-18", loc: "Bremen, DE", org: "vde", status: "confirmed", rel: "hoch", url: "https://scc2027.uni-bremen.de/", note: "Systems, Communications and Coding. Zentrale ITG-Konferenz." },
-      { name: "IEEE WCNC 2027", start: "2027-04-05", end: "2027-04-08", loc: "Panama-Stadt, PA", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-wireless-communications-and-networking-conference-2027", note: "Wireless-Flagship ComSoc." },
-      { name: "IFIP Networking (typisch Mai)", start: "2027-05-24", end: "2027-05-27", loc: "Europa (typisch)", org: "other", status: "typical", rel: "hoch", url: "https://networking.ifip.org/", note: "2026: 24.–27.05. Lugano. Überlappt oft mit INFOCOM-Fenster." },
-      { name: "IEEE SECON 2027", start: "2027-05-05", end: "2027-05-07", loc: "Lissabon, PT", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.comsoc.org/conferences-events/ieee-international-conference-sensing-communication-and-networking-2027", note: "Sensing, IoT, Ad-hoc." },
-      { name: "IEEE/IFIP NOMS 2027", start: "2027-05-10", end: "2027-05-14", loc: "Montreal, CA", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.ieee-noms.org/", note: "Network & Service Management." },
-      { name: "USENIX NSDI '27", start: "2027-05-11", end: "2027-05-13", loc: "Providence, USA", org: "acm", status: "confirmed", rel: "hoch", url: "https://www.usenix.org/conference/nsdi27", note: "In cooperation with ACM SIGCOMM." },
-      { name: "ITG Fachtagung Mobilkommunikation (typisch Mai)", start: "2027-05-11", end: "2027-05-12", loc: "Deutschland (typisch)", org: "vde", status: "typical", rel: "hoch", url: "https://www.vde.com/de/itg/veranstaltungen", note: "2026: 12.–13.05. Osnabrück. 6G/Mobilfunk, DE-Community." },
-      { name: "ITG Photonic Networks (typisch Mai)", start: "2027-05-18", end: "2027-05-19", loc: "Deutschland (typisch)", org: "vde", status: "typical", rel: "mittel", url: "https://www.vde.com/pn", note: "2026: 19.–20.05. Stuttgart." },
-      { name: "IEEE INFOCOM 2027", start: "2027-05-24", end: "2027-05-27", loc: "Honolulu, USA", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-international-conference-computer-communications-2027", note: "Top-Networking-Konferenz." },
-      { name: "IEEE ICC 2027", start: "2027-05-30", end: "2027-06-03", loc: "Washington, D.C., USA", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-international-conference-communications-2027", note: "ComSoc-Flagship; Ende reicht in den Juni." },
-      { name: "ACM SIGMETRICS 2027 (FCRC)", start: "2027-06-07", end: "2027-06-11", loc: "Atlanta, USA", org: "acm", status: "confirmed", rel: "mittel", url: "https://www.sigmetrics.org/sigmetrics2027/", note: "Performance/Measurement, inkl. Netze." },
-      { name: "EuCNC & 6G Summit 2027", start: "2027-06-08", end: "2027-06-11", loc: "Dublin, IE", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.eucnc.eu/about/announcement-eucnc-6g-summit-2027/", note: "Europäisches 6G-Flagship, ~1000 Teilnehmende, SNS JU." },
-      { name: "SLICES Summer School (typisch Juni)", start: "2027-06-08", end: "2027-06-11", loc: "Europa (typisch)", org: "slices", status: "typical", rel: "hoch", url: "https://www.slices-ri.eu/events/slices-summer-school-2026/", note: "2025 Porto 25.–27.06.; 2026 Madrid 09.–11.06. Oft dieselbe Woche wie EuCNC." },
-      { name: "IEEE LANMAN (typisch Juni)", start: "2027-06-14", end: "2027-06-16", loc: "noch offen", org: "ieee", status: "typical", rel: "mittel", url: "https://www.comsoc.org/conferences-events", note: "2026: 15.–16.06. Tempe, USA." },
-      { name: "MueWoWAS (typisch Mitte Juni)", start: "2027-06-16", end: "2027-06-16", loc: "Garching/München, DE", org: "vde", status: "typical", rel: "hoch", url: "https://www.vde.com/de/itg/veranstaltungen", note: "2026: 17.06. Siemens Garching. ITG KT2, 1 Tag, Industrie+Akademie." },
-      { name: "IEEE VTC2027-Spring", start: "2027-06-20", end: "2027-06-23", loc: "Hamburg, DE", org: "ieee", status: "confirmed", rel: "hoch", url: "https://events.vtsociety.org/vtc2027-spring/", note: "Flagship Wireless/6G in Deutschland. Starker Konflikt." },
-      { name: "IEEE WoWMoM 2027", start: "2027-06-21", end: "2027-06-24", loc: "Irvine, USA", org: "ieee", status: "confirmed", rel: "mittel", url: "https://wowmom2027.dii.unipi.it/", note: "Wireless, Mobility, IoT, ML." },
-      { name: "ACM MobiSys 2027", start: "2027-06-21", end: "2027-06-25", loc: "Ho-Chi-Minh-Stadt, VN", org: "acm", status: "confirmed", rel: "mittel", url: "https://www.sigmobile.org/mobisys/2027/", note: "Mobile Systeme." },
-      { name: "IEEE ISCC (typisch Ende Juni)", start: "2027-06-22", end: "2027-06-25", loc: "Mittelmeer (typisch)", org: "ieee", status: "typical", rel: "mittel", url: "https://ieee-iscc.computer.org/", note: "2026: 23.–26.06. Vilamoura." },
-      { name: "IEEE ISIT 2027", start: "2027-06-27", end: "2027-07-02", loc: "Sorrent, IT", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.itsoc.org/event/2027-ieee-international-symposium-information-theory-isit", note: "Informationstheorie; Schnittmenge Coding/Wireless." },
-      { name: "IEEE NetSoft (typisch Ende Juni)", start: "2027-06-28", end: "2027-07-02", loc: "noch offen", org: "ieee", status: "typical", rel: "hoch", url: "https://netsoft2026.ieee-netsoft.org/", note: "2026: 29.06.–03.07. Berlin. SDN/NFV, Softwarization." },
-      { name: "IEEE MeditCom 2027", start: "2027-07-05", end: "2027-07-08", loc: "Cagliari, IT", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.comsoc.org/conferences-events/ieee-international-mediterranean-conference-communications-and-networking-2027", note: "ComSoc regional, 5G/6G." },
-      { name: "IETF 129 + ANRW (typisch colocated)", start: "2027-07-17", end: "2027-07-23", loc: "Berlin, DE", org: "ietf", status: "confirmed", rel: "hoch", url: "https://www.ietf.org/meeting/129/", note: "IETF in Berlin. ANRW üblicherweise in der Juli-IETF-Woche, SIGCOMM in-cooperation." },
-      { name: "ACM SIGCOMM 2027", start: "2027-08-08", end: "2027-08-12", loc: "Bangkok, TH", org: "acm", status: "confirmed", rel: "hoch", url: "https://conferences.sigcomm.org/sigcomm/2027/", note: "Flagship Data Communication. Direkt nach dem Juli." },
-      { name: "NetSys 2027 (typisch September)", start: "2027-09-01", end: "2027-09-04", loc: "Deutschland (typisch)", org: "gi", status: "typical", rel: "hoch", url: "https://kuvs.de/netsys", note: "Biennale KuVS/GI/ITG. 2025: 01.–04.09. Ilmenau. Inkl. ITG Zukunft der Netze." },
-      { name: "IEEE PIMRC 2027", start: "2027-09-07", end: "2027-09-10", loc: "Lissabon, PT", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-international-symposium-personal-indoor-and-mobile-radio-communications-2027", note: "Personal/Indoor/Mobile Radio." },
-      { name: "Berlin 6G Conference (typisch Sept.)", start: "2027-09-07", end: "2027-09-09", loc: "Berlin, DE", org: "other", status: "typical", rel: "hoch", url: "https://www.berlin-6g-conference.de/", note: "2026: 08.–10.09. bcc Berlin. 6G-Plattform Deutschland." },
-      { name: "KuVS Fachgespräch Sensornetze (typisch)", start: "2027-09-27", end: "2027-09-28", loc: "Deutschland (typisch)", org: "gi", status: "typical", rel: "mittel", url: "https://kuvs.de/fg", note: "2026: 28.09. TU Ilmenau." },
-      { name: "IEEE VTC2027-Fall", start: "2027-09-27", end: "2027-09-30", loc: "Osaka, JP", org: "ieee", status: "confirmed", rel: "mittel", url: "https://events.vtsociety.org/", note: "Herbst-Ausgabe VTC." },
-      { name: "WueWoWAS bisheriges Fenster (historisch)", start: "2027-09-28", end: "2027-09-30", loc: "Würzburg, DE", org: "gi", status: "typical", rel: "hoch", url: "https://kuvs.de/fg/wuewowas", note: "2024–2026 jeweils Ende Sept./Anfang Okt. Nur als Referenz für die Verschiebung nach Juni/Juli." },
-      { name: "ACM IMC (typisch Oktober)", start: "2027-10-12", end: "2027-10-16", loc: "noch offen", org: "acm", status: "typical", rel: "hoch", url: "https://conferences.sigcomm.org/imc/2026/", note: "2026: 12.–16.10. Karlsruhe – also DE-Community stark vertreten." },
-      { name: "ACM MobiCom 2027", start: "2027-10-18", end: "2027-10-22", loc: "noch offen", org: "acm", status: "confirmed", rel: "hoch", url: "https://www.sigmobile.org/mobicom/2027/", note: "Mobile Computing Flagship." },
-      { name: "IEEE FNWF (typisch Oktober)", start: "2027-10-25", end: "2027-10-28", loc: "noch offen", org: "ieee", status: "typical", rel: "mittel", url: "https://fnwf2026.ieee.org/", note: "2026: 26.–28.10. Lissabon. Future Networks / 6G." },
-      { name: "IETF 130", start: "2027-11-06", end: "2027-11-12", loc: "Vancouver, CA", org: "ietf", status: "confirmed", rel: "hoch", url: "https://www.ietf.org/meeting/upcoming/", note: "November-Meeting." },
-      { name: "ACM HotNets (typisch November)", start: "2027-11-15", end: "2027-11-16", loc: "noch offen", org: "acm", status: "typical", rel: "hoch", url: "https://conferences.sigcomm.org/hotnets/2026/", note: "2026: 16.–17.11. Salt Lake City. Ideen-Workshop SIGCOMM." },
-      { name: "ACM CoNEXT (typisch Dezember)", start: "2027-12-06", end: "2027-12-10", loc: "noch offen", org: "acm", status: "typical", rel: "hoch", url: "https://www.sigcomm.org/events/conext-conference", note: "2026: 07.–10.12. Utrecht." },
-      { name: "IEEE GLOBECOM 2027", start: "2027-12-06", end: "2027-12-10", loc: "Abu Dhabi, AE", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events", note: "Zweites ComSoc-Flagship des Jahres." }
+      { id: "ccnc", short: "CCNC", name: "IEEE CCNC 2027", start: "2027-01-09", end: "2027-01-12", loc: "Las Vegas, USA", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.comsoc.org/conferences-events/ieee-consumer-communications-and-networking-conference-2027", note: "Consumer communications, CES-Woche." },
+      { id: "ietf128", short: "IETF 128", name: "IETF 128", start: "2027-03-06", end: "2027-03-12", loc: "Kuala Lumpur, MY", org: "ietf", status: "confirmed", rel: "hoch", url: "https://www.ietf.org/meeting/128/", note: "Internet-Standardisierung." },
+      { id: "gemic", short: "GeMiC", name: "VDE ITG GeMiC 2027", start: "2027-03-15", end: "2027-03-17", loc: "Hamburg, DE", org: "vde", status: "confirmed", rel: "mittel", url: "https://www.vde.com/18th_german_microwave_conference_gemic_2027", note: "Mikrowellen, mit ITG." },
+      { id: "scc", short: "SCC", name: "ITG SCC 2027", start: "2027-03-15", end: "2027-03-18", loc: "Bremen, DE", org: "vde", status: "confirmed", rel: "hoch", url: "https://scc2027.uni-bremen.de/", note: "Systems, Communications and Coding. Zentrale ITG-Konferenz." },
+      { id: "malene", short: "MaLeNe", name: "KuVS MaLeNe (typisch März)", start: "2027-03-18", end: "2027-03-19", loc: "Deutschland (typisch)", org: "gi", status: "typical", rel: "hoch", url: "https://kuvs.de/fg", note: "2026: 19.–20.03. Augsburg. Machine Learning in Networking." },
+      { id: "wcnc", short: "WCNC", name: "IEEE WCNC 2027", start: "2027-04-05", end: "2027-04-08", loc: "Panama-Stadt, PA", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-wireless-communications-and-networking-conference-2027", note: "Wireless-Flagship ComSoc." },
+      { id: "secon", short: "SECON", name: "IEEE SECON 2027", start: "2027-05-05", end: "2027-05-07", loc: "Lissabon, PT", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.comsoc.org/conferences-events/ieee-international-conference-sensing-communication-and-networking-2027", note: "Sensing, IoT, Ad-hoc." },
+      { id: "noms", short: "NOMS", name: "IEEE/IFIP NOMS 2027", start: "2027-05-10", end: "2027-05-14", loc: "Montreal, CA", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.ieee-noms.org/", note: "Network & Service Management." },
+      { id: "nsdi", short: "NSDI", name: "USENIX NSDI '27", start: "2027-05-11", end: "2027-05-13", loc: "Providence, USA", org: "acm", status: "confirmed", rel: "hoch", url: "https://www.usenix.org/conference/nsdi27", note: "In cooperation with ACM SIGCOMM." },
+      { id: "mobilkomm", short: "Mobilkomm.", name: "ITG Fachtagung Mobilkommunikation (typisch Mai)", start: "2027-05-11", end: "2027-05-12", loc: "Deutschland (typisch)", org: "vde", status: "typical", rel: "hoch", url: "https://www.vde.com/de/itg/veranstaltungen", note: "2026: 12.–13.05. Osnabrück. 6G/Mobilfunk, DE-Community." },
+      { id: "pn", short: "Photonic NW", name: "ITG Photonic Networks (typisch Mai)", start: "2027-05-18", end: "2027-05-19", loc: "Deutschland (typisch)", org: "vde", status: "typical", rel: "mittel", url: "https://www.vde.com/pn", note: "2026: 19.–20.05. Stuttgart." },
+      { id: "ifip", short: "IFIP Netw.", name: "IFIP Networking (typisch Mai)", start: "2027-05-24", end: "2027-05-27", loc: "Europa (typisch)", org: "other", status: "typical", rel: "hoch", url: "https://networking.ifip.org/", note: "2026: 24.–27.05. Lugano. Überlappt oft mit INFOCOM-Fenster." },
+      { id: "infocom", short: "INFOCOM", name: "IEEE INFOCOM 2027", start: "2027-05-24", end: "2027-05-27", loc: "Honolulu, USA", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-international-conference-computer-communications-2027", note: "Top-Networking-Konferenz." },
+      { id: "icc", short: "ICC", name: "IEEE ICC 2027", start: "2027-05-30", end: "2027-06-03", loc: "Washington, D.C., USA", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-international-conference-communications-2027", note: "ComSoc-Flagship; Ende reicht in den Juni." },
+      { id: "sigmetrics", short: "SIGMETRICS", name: "ACM SIGMETRICS 2027 (FCRC)", start: "2027-06-07", end: "2027-06-11", loc: "Atlanta, USA", org: "acm", status: "confirmed", rel: "mittel", url: "https://www.sigmetrics.org/sigmetrics2027/", note: "Performance/Measurement, inkl. Netze." },
+      { id: "eucnc", short: "EuCNC 6G", name: "EuCNC & 6G Summit 2027", start: "2027-06-08", end: "2027-06-11", loc: "Dublin, IE", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.eucnc.eu/about/announcement-eucnc-6g-summit-2027/", note: "Europäisches 6G-Flagship, ~1000 Teilnehmende, SNS JU." },
+      { id: "slices", short: "SLICES SS", name: "SLICES Summer School (typisch Juni)", start: "2027-06-08", end: "2027-06-11", loc: "Europa (typisch)", org: "slices", status: "typical", rel: "hoch", url: "https://www.slices-ri.eu/events/slices-summer-school-2026/", note: "2025 Porto 25.–27.06.; 2026 Madrid 09.–11.06. Oft dieselbe Woche wie EuCNC." },
+      { id: "lanman", short: "LANMAN", name: "IEEE LANMAN (typisch Juni)", start: "2027-06-14", end: "2027-06-16", loc: "noch offen", org: "ieee", status: "typical", rel: "mittel", url: "https://www.comsoc.org/conferences-events", note: "2026: 15.–16.06. Tempe, USA." },
+      { id: "muewowas", short: "MueWoWAS", name: "MueWoWAS (typisch Mitte Juni)", start: "2027-06-16", end: "2027-06-16", loc: "Garching/München, DE", org: "vde", status: "typical", rel: "hoch", url: "https://www.vde.com/de/itg/veranstaltungen", note: "2026: 17.06. Siemens Garching. ITG KT2, 1 Tag, Industrie+Akademie." },
+      { id: "vtcsp", short: "VTC-Spring", name: "IEEE VTC2027-Spring", start: "2027-06-20", end: "2027-06-23", loc: "Hamburg, DE", org: "ieee", status: "confirmed", rel: "hoch", url: "https://events.vtsociety.org/vtc2027-spring/", note: "Flagship Wireless/6G in Deutschland. Starker Konflikt." },
+      { id: "wowmom", short: "WoWMoM", name: "IEEE WoWMoM 2027", start: "2027-06-21", end: "2027-06-24", loc: "Irvine, USA", org: "ieee", status: "confirmed", rel: "mittel", url: "https://wowmom2027.dii.unipi.it/", note: "Wireless, Mobility, IoT, ML." },
+      { id: "mobisys", short: "MobiSys", name: "ACM MobiSys 2027", start: "2027-06-21", end: "2027-06-25", loc: "Ho-Chi-Minh-Stadt, VN", org: "acm", status: "confirmed", rel: "mittel", url: "https://www.sigmobile.org/mobisys/2027/", note: "Mobile Systeme." },
+      { id: "iscc", short: "ISCC", name: "IEEE ISCC (typisch Ende Juni)", start: "2027-06-22", end: "2027-06-25", loc: "Mittelmeer (typisch)", org: "ieee", status: "typical", rel: "mittel", url: "https://ieee-iscc.computer.org/", note: "2026: 23.–26.06. Vilamoura." },
+      { id: "isit", short: "ISIT", name: "IEEE ISIT 2027", start: "2027-06-27", end: "2027-07-02", loc: "Sorrent, IT", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.itsoc.org/event/2027-ieee-international-symposium-information-theory-isit", note: "Informationstheorie; Schnittmenge Coding/Wireless." },
+      { id: "netsoft", short: "NetSoft", name: "IEEE NetSoft (typisch Ende Juni)", start: "2027-06-28", end: "2027-07-02", loc: "noch offen", org: "ieee", status: "typical", rel: "hoch", url: "https://netsoft2026.ieee-netsoft.org/", note: "2026: 29.06.–03.07. Berlin. SDN/NFV, Softwarization." },
+      { id: "meditcom", short: "MeditCom", name: "IEEE MeditCom 2027", start: "2027-07-05", end: "2027-07-08", loc: "Cagliari, IT", org: "ieee", status: "confirmed", rel: "mittel", url: "https://www.comsoc.org/conferences-events/ieee-international-mediterranean-conference-communications-and-networking-2027", note: "ComSoc regional, 5G/6G." },
+      { id: "ietf129", short: "IETF 129", name: "IETF 129 + ANRW (typisch colocated)", start: "2027-07-17", end: "2027-07-23", loc: "Berlin, DE", org: "ietf", status: "confirmed", rel: "hoch", url: "https://www.ietf.org/meeting/129/", note: "IETF in Berlin. ANRW üblicherweise in der Juli-IETF-Woche, SIGCOMM in-cooperation." },
+      { id: "sigcomm", short: "SIGCOMM", name: "ACM SIGCOMM 2027", start: "2027-08-08", end: "2027-08-12", loc: "Bangkok, TH", org: "acm", status: "confirmed", rel: "hoch", url: "https://conferences.sigcomm.org/sigcomm/2027/", note: "Flagship Data Communication. Direkt nach dem Juli." },
+      { id: "netsys", short: "NetSys", name: "NetSys 2027 (typisch September)", start: "2027-09-01", end: "2027-09-04", loc: "Deutschland (typisch)", org: "gi", status: "typical", rel: "hoch", url: "https://kuvs.de/netsys", note: "Biennale KuVS/GI/ITG. 2025: 01.–04.09. Ilmenau. Inkl. ITG Zukunft der Netze." },
+      { id: "pimrc", short: "PIMRC", name: "IEEE PIMRC 2027", start: "2027-09-07", end: "2027-09-10", loc: "Lissabon, PT", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events/ieee-international-symposium-personal-indoor-and-mobile-radio-communications-2027", note: "Personal/Indoor/Mobile Radio." },
+      { id: "berlin6g", short: "Berlin 6G", name: "Berlin 6G Conference (typisch Sept.)", start: "2027-09-07", end: "2027-09-09", loc: "Berlin, DE", org: "other", status: "typical", rel: "hoch", url: "https://www.berlin-6g-conference.de/", note: "2026: 08.–10.09. bcc Berlin. 6G-Plattform Deutschland." },
+      { id: "sensornetze", short: "Sensornetze", name: "KuVS Fachgespräch Sensornetze (typisch)", start: "2027-09-27", end: "2027-09-28", loc: "Deutschland (typisch)", org: "gi", status: "typical", rel: "mittel", url: "https://kuvs.de/fg", note: "2026: 28.09. TU Ilmenau." },
+      { id: "vtcfall", short: "VTC-Fall", name: "IEEE VTC2027-Fall", start: "2027-09-27", end: "2027-09-30", loc: "Osaka, JP", org: "ieee", status: "confirmed", rel: "mittel", url: "https://events.vtsociety.org/", note: "Herbst-Ausgabe VTC." },
+      { id: "wuewowas", short: "WueWoWAS hist.", name: "WueWoWAS bisheriges Fenster (historisch)", start: "2027-09-28", end: "2027-09-30", loc: "Würzburg, DE", org: "gi", status: "typical", rel: "hoch", url: "https://kuvs.de/fg/wuewowas", note: "2024–2026 jeweils Ende Sept./Anfang Okt. Nur als Referenz für die Verschiebung nach Juni/Juli." },
+      { id: "imc", short: "IMC", name: "ACM IMC (typisch Oktober)", start: "2027-10-12", end: "2027-10-16", loc: "noch offen", org: "acm", status: "typical", rel: "hoch", url: "https://conferences.sigcomm.org/imc/2026/", note: "2026: 12.–16.10. Karlsruhe – also DE-Community stark vertreten." },
+      { id: "mobicom", short: "MobiCom", name: "ACM MobiCom 2027", start: "2027-10-18", end: "2027-10-22", loc: "noch offen", org: "acm", status: "confirmed", rel: "hoch", url: "https://www.sigmobile.org/mobicom/2027/", note: "Mobile Computing Flagship." },
+      { id: "fnwf", short: "FNWF", name: "IEEE FNWF (typisch Oktober)", start: "2027-10-25", end: "2027-10-28", loc: "noch offen", org: "ieee", status: "typical", rel: "mittel", url: "https://fnwf2026.ieee.org/", note: "2026: 26.–28.10. Lissabon. Future Networks / 6G." },
+      { id: "ietf130", short: "IETF 130", name: "IETF 130", start: "2027-11-06", end: "2027-11-12", loc: "Vancouver, CA", org: "ietf", status: "confirmed", rel: "hoch", url: "https://www.ietf.org/meeting/upcoming/", note: "November-Meeting." },
+      { id: "hotnets", short: "HotNets", name: "ACM HotNets (typisch November)", start: "2027-11-15", end: "2027-11-16", loc: "noch offen", org: "acm", status: "typical", rel: "hoch", url: "https://conferences.sigcomm.org/hotnets/2026/", note: "2026: 16.–17.11. Salt Lake City. Ideen-Workshop SIGCOMM." },
+      { id: "conext", short: "CoNEXT", name: "ACM CoNEXT (typisch Dezember)", start: "2027-12-06", end: "2027-12-10", loc: "noch offen", org: "acm", status: "typical", rel: "hoch", url: "https://www.sigcomm.org/events/conext-conference", note: "2026: 07.–10.12. Utrecht." },
+      { id: "globecom", short: "GLOBECOM", name: "IEEE GLOBECOM 2027", start: "2027-12-06", end: "2027-12-10", loc: "Abu Dhabi, AE", org: "ieee", status: "confirmed", rel: "hoch", url: "https://www.comsoc.org/conferences-events", note: "Zweites ComSoc-Flagship des Jahres." }
     ];
 
     const HOLIDAYS = [
@@ -395,6 +519,7 @@
     ];
 
     const FERIEN = [
+      { name: "BY Pfingstferien", start: "2027-05-18", end: "2027-05-28" },
       { name: "HE/RP/SL Sommerferien", start: "2027-06-28", end: "2027-08-06" },
       { name: "BE/BB/HH Sommerferien", start: "2027-07-01", end: "2027-08-14" },
       { name: "SH Sommerferien", start: "2027-07-03", end: "2027-08-14" },
@@ -407,6 +532,13 @@
     ];
 
     const CANDIDATE_WEEKS = [
+      { start: "2027-04-12", label: "12.–16.04.", hint: "Nach WCNC Panama" },
+      { start: "2027-04-19", label: "19.–23.04.", hint: "April, wenige Flagships" },
+      { start: "2027-04-26", label: "26.–30.04.", hint: "Vor Mai-Feiertagen" },
+      { start: "2027-05-03", label: "03.–07.05.", hint: "SECON + Himmelfahrt" },
+      { start: "2027-05-10", label: "10.–14.05.", hint: "NSDI, NOMS, Mobilkomm." },
+      { start: "2027-05-17", label: "17.–21.05.", hint: "Pfingstmontag + Ferien BY" },
+      { start: "2027-05-24", label: "24.–28.05.", hint: "INFOCOM + Fronleichnam" },
       { start: "2027-05-31", label: "31.05.–04.06.", hint: "ICC-Ausklang Washington" },
       { start: "2027-06-07", label: "07.–11.06.", hint: "EuCNC Dublin + SIGMETRICS" },
       { start: "2027-06-14", label: "14.–18.06.", hint: "Lücke EuCNC → VTC Hamburg" },
@@ -418,8 +550,10 @@
       { start: "2027-07-26", label: "26.–30.07.", hint: "Nach IETF, Ferienhoch" }
     ];
 
+    const MONTH_NAMES = { 4: "April", 5: "Mai", 6: "Juni", 7: "Juli" };
     const activeOrgs = new Set(ORGS.map(o => o.id));
     let sortMode = "start";
+    let calMonth = "6";
 
     const parse = s => new Date(s + "T00:00:00");
     const pad = n => String(n).padStart(2, "0");
@@ -427,9 +561,10 @@
     const fmt = d => d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
     const fmtLong = d => d.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
     const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-    const sameDay = (a, b) => iso(a) === iso(b);
     const overlaps = (a0, a1, b0, b1) => a0 <= b1 && b0 <= a1;
     const inGermany = loc => /, DE\b|Deutschland|Berlin|Hamburg|Bremen|München|Garching|Würzburg|Ilmenau|Stuttgart|Osnabrück|Augsburg/.test(loc);
+    const inWindow = e => overlaps(parse(e.start), parse(e.end), parse("2027-04-01"), parse("2027-07-31"));
+    const eventById = id => EVENTS.find(e => e.id === id);
 
     function rangeDays(start, days) {
       const s = parse(start);
@@ -449,7 +584,7 @@
       let w = e.status === "confirmed" ? 3 : 1.4;
       if (e.rel === "hoch") w += 1.5;
       if (inGermany(e.loc)) w += 2.2;
-      if (/EuCNC|VTC2027-Spring|IETF 129|ICC 2027|SIGCOMM 2027|INFOCOM|NetSys/.test(e.name)) w += 1.8;
+      if (/EuCNC|VTC2027-Spring|IETF 129|ICC 2027|SIGCOMM 2027|INFOCOM|NetSys|WCNC/.test(e.name)) w += 1.8;
       return w;
     }
 
@@ -462,6 +597,81 @@
       const holidays = HOLIDAYS.filter(h => overlaps(s, e, parse(h.date), parse(h.date)));
       const score = Math.max(0, 100 - hits.reduce((acc, h) => acc + h.w * 7, 0) - ferien.length * 4 - holidays.length * 12);
       return { s, e, hits, ferien, holidays, score };
+    }
+
+    function statusBadge(e) {
+      return e.status === "confirmed" ? '<span class="badge ok">bestätigt</span>' : '<span class="badge typ">typisch</span>';
+    }
+    function relBadge(e) {
+      return e.rel === "hoch" ? '<span class="badge bad">hoch</span>' : '<span class="badge warn">mittel</span>';
+    }
+    function orgLabel(id) {
+      return ORGS.find(o => o.id === id).label;
+    }
+
+    function eventDetailsHtml(e) {
+      return `
+        <h2 id="modalTitle">${e.name}</h2>
+        <p>${statusBadge(e)} ${relBadge(e)} <span class="badge">${orgLabel(e.org)}</span></p>
+        <dl>
+          <dt>Datum</dt><dd>${fmt(parse(e.start))}–${fmt(parse(e.end))} 2027</dd>
+          <dt>Ort</dt><dd>${e.loc}</dd>
+          <dt>Hinweis</dt><dd>${e.note}</dd>
+        </dl>
+        <div class="modal-actions">
+          <a class="chip primary" href="${e.url}" target="_blank" rel="noopener" style="background:var(--ink);color:#fff;border-color:var(--ink);text-decoration:none">Zur Website</a>
+          <button type="button" data-set-start="${e.start}">Als Planungsstart</button>
+        </div>`;
+    }
+
+    function openModal(html) {
+      document.getElementById("modalBody").innerHTML = html;
+      document.getElementById("modalBackdrop").classList.add("open");
+      document.getElementById("modalBody").querySelectorAll("[data-set-start]").forEach(btn => {
+        btn.onclick = () => {
+          document.getElementById("startDate").value = btn.dataset.setStart;
+          closeModal();
+          showTab("plan");
+          refresh();
+        };
+      });
+      document.getElementById("modalBody").querySelectorAll("[data-event]").forEach(btn => {
+        btn.onclick = () => openEvent(btn.dataset.event);
+      });
+    }
+
+    function openEvent(id) {
+      const e = eventById(id);
+      if (e) openModal(eventDetailsHtml(e));
+    }
+
+    function openDay(dateStr) {
+      const d = parse(dateStr);
+      const hits = eventsOn(d);
+      const hol = HOLIDAYS.find(h => h.date === dateStr);
+      const html = `
+        <h2 id="modalTitle">${fmtLong(d)}</h2>
+        ${hol ? `<p class="badge bad">${hol.name}</p>` : ""}
+        <div class="day-events">
+          ${hits.length ? hits.map(h => `<button type="button" class="ev org-${h.org}" data-event="${h.id}">${h.name}</button>`).join("") : '<p class="muted">Keine gelisteten Fach-Events an diesem Tag.</p>'}
+        </div>
+        <div class="modal-actions" style="margin-top:16px">
+          <button type="button" class="primary" data-set-start="${dateStr}">Diesen Tag als Planungsstart</button>
+        </div>`;
+      openModal(html);
+    }
+
+    function closeModal() {
+      document.getElementById("modalBackdrop").classList.remove("open");
+    }
+
+    function showTab(id) {
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "tab-" + id));
+      document.querySelectorAll('header .tabs [data-tab]').forEach(btn => {
+        const on = btn.dataset.tab === id;
+        btn.classList.toggle("active", on);
+        btn.setAttribute("aria-selected", on ? "true" : "false");
+      });
     }
 
     function renderFilters() {
@@ -483,36 +693,49 @@
       };
     }
 
-    function renderMonth(containerId, year, month) {
-      const el = document.getElementById(containerId);
+    function monthHtml(year, month) {
       const first = new Date(year, month - 1, 1);
       const startPad = (first.getDay() + 6) % 7;
       const gridStart = addDays(first, -startPad);
       const sel = rangeDays(document.getElementById("startDate").value, document.getElementById("duration").value);
       const heads = ["KW", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(h => `<div class="head">${h}</div>`).join("");
-      let html = heads;
+      let html = `<div class="month-block"><h3>${MONTH_NAMES[month]} 2027</h3><div class="cal">${heads}`;
       for (let i = 0; i < 42; i++) {
         const d = addDays(gridStart, i);
-        if (i % 7 === 0) {
-          const wk = isoWeek(d);
-          html += `<div class="wk">${wk}</div>`;
-        }
+        if (i % 7 === 0) html += `<div class="wk">${isoWeek(d)}</div>`;
         const out = d.getMonth() !== month - 1;
         const hol = HOLIDAYS.find(h => h.date === iso(d));
         const selected = overlaps(d, d, sel.s, sel.e);
-        const hits = eventsOn(d).slice(0, 4);
+        const hits = eventsOn(d);
+        const shown = hits.slice(0, 3);
+        const rest = hits.length - shown.length;
         const cls = ["day", out ? "out" : "", hol ? "holiday" : "", selected ? "selected" : ""].join(" ");
         html += `<div class="${cls}" data-date="${iso(d)}">
-          <div class="num">${d.getDate()}${hol ? " · " + hol.name.split(" ")[0] : ""}</div>
-          ${hits.map(h => `<div class="ev org-${h.org}" title="${h.name}">${h.name.replace(/ \(typisch.*\)/, "")}</div>`).join("")}
+          <div class="num" data-day="${iso(d)}"><span>${d.getDate()}</span>${hol ? `<span class="hol-label">${hol.name.split(" (")[0]}</span>` : ""}</div>
+          ${shown.map(h => `<button type="button" class="ev org-${h.org}" data-event="${h.id}" title="${h.name}">${h.short}</button>`).join("")}
+          ${rest > 0 ? `<button type="button" class="ev more" data-day="${iso(d)}">+${rest} weitere</button>` : ""}
         </div>`;
       }
-      el.innerHTML = html;
-      el.querySelectorAll(".day").forEach(day => {
-        day.onclick = () => {
-          document.getElementById("startDate").value = day.dataset.date;
-          refresh();
-        };
+      html += "</div></div>";
+      return html;
+    }
+
+    function bindCalendar(root) {
+      root.querySelectorAll("[data-event]").forEach(btn => {
+        btn.onclick = ev => { ev.stopPropagation(); openEvent(btn.dataset.event); };
+      });
+      root.querySelectorAll("[data-day]").forEach(el => {
+        el.onclick = ev => { ev.stopPropagation(); openDay(el.dataset.day); };
+      });
+    }
+
+    function renderCalendars() {
+      const root = document.getElementById("calendars");
+      const months = calMonth === "all" ? [4, 5, 6, 7] : [Number(calMonth)];
+      root.innerHTML = months.map(m => monthHtml(2027, m)).join("");
+      bindCalendar(root);
+      document.querySelectorAll("#monthTabs [data-month]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.month === calMonth);
       });
     }
 
@@ -533,14 +756,17 @@
         `<strong>${fmtLong(a.s)} – ${fmtLong(a.e)}</strong> · ${days} Tage · Konflikt-Score <strong>${Math.round(a.score)}/100</strong> (${tone}).
          ${a.hits.length ? a.hits.length + " überlappende Community-Events." : "Keine überlappenden gelisteten Fach-Events."}`;
       document.getElementById("conflicts").innerHTML = a.hits.length
-        ? a.hits.map(h => `<li><a href="${h.url}" target="_blank" rel="noopener">${h.name}</a> · ${fmt(parse(h.start))}–${fmt(parse(h.end))} · ${h.loc} · ${h.status === "confirmed" ? "bestätigt" : "typisch"} — ${h.note}</li>`).join("")
+        ? a.hits.map(h => `<li><button type="button" class="linkish" data-event="${h.id}">${h.name}</button> · ${fmt(parse(h.start))}–${fmt(parse(h.end))} · ${h.loc} · ${h.status === "confirmed" ? "bestätigt" : "typisch"} — ${h.note}</li>`).join("")
         : "<li>Keine direkten Fachkonflikte im Filter.</li>";
+      document.getElementById("conflicts").querySelectorAll("[data-event]").forEach(btn => {
+        btn.onclick = () => openEvent(btn.dataset.event);
+      });
       const ctx = [];
       if (a.holidays.length) ctx.push(...a.holidays.map(h => `<li>Feiertag: ${h.name} (${fmt(parse(h.date))})</li>`));
-      else ctx.push("<li>Keine gesetzlichen DE-Feiertage in dieser Woche (Juni/Juli 2027 sind in Bayern feiertagsfrei).</li>");
+      else ctx.push("<li>Keine gesetzlichen DE-Feiertage in dieser Woche.</li>");
       if (a.ferien.length) ctx.push(...a.ferien.map(f => `<li>${f.name} (${fmt(parse(f.start))}–${fmt(parse(f.end))})</li>`));
-      else ctx.push("<li>Noch keine Sommerferien in den bevölkerungsstarken Ländern; HE/RP/SL starten erst 28.06.</li>");
-      ctx.push("<li>Vorlesungszeit Sommersemester typisch bis Mitte Juli – Würzburg/BY bis 02.08. in der Schule.</li>");
+      else ctx.push("<li>Keine überlappenden Schulferien in den gelisteten Ländern.</li>");
+      ctx.push("<li>Vorlesungszeit Sommersemester typisch Mitte April bis Mitte Juli; Bayern-Sommerferien ab 02.08.</li>");
       document.getElementById("context").innerHTML = ctx.join("");
     }
 
@@ -552,7 +778,7 @@
         const cls = i === 0 ? "best" : w.score < 40 ? "avoid" : "";
         const width = Math.max(8, Math.min(100, w.score));
         const color = w.score >= 72 ? "var(--ok)" : w.score >= 45 ? "var(--gold)" : "var(--bad)";
-        const conflicts = w.hits.slice(0, 3).map(h => h.name.replace(/ \(typisch.*\)/, "")).join(" · ") || "keine Flagships";
+        const conflicts = w.hits.slice(0, 3).map(h => h.short).join(" · ") || "keine Flagships";
         return `<article class="weekcard ${cls}" data-start="${w.start}">
           <h3>${w.label}</h3>
           <div class="tiny muted">${w.hint}</div>
@@ -565,7 +791,6 @@
         card.onclick = () => {
           document.getElementById("startDate").value = card.dataset.start;
           refresh();
-          window.scrollTo({ top: 0, behavior: "smooth" });
         };
       });
     }
@@ -582,11 +807,15 @@
         const width = Math.max(0.8, ((en - s) / span) * 100 + 0.4);
         const op = e.status === "typical" ? .45 : .92;
         return `<div class="gantt-row">
-          <div class="gantt-label" title="${e.name}">${e.name.replace(/ \(typisch.*\)/, "")}</div>
-          <div class="gantt-track"><div class="gantt-bar org-${e.org}" style="left:${left}%;width:${width}%;opacity:${op}"></div></div>
+          <button type="button" class="gantt-label" data-event="${e.id}" title="${e.name}">${e.name.replace(/ \(typisch.*\)/, "")}</button>
+          <div class="gantt-track"><button type="button" class="gantt-bar org-${e.org}" data-event="${e.id}" style="left:${left}%;width:${width}%;opacity:${op}"></button></div>
         </div>`;
       }).join("");
-      document.getElementById("gantt").innerHTML = html;
+      const gantt = document.getElementById("gantt");
+      gantt.innerHTML = html;
+      gantt.querySelectorAll("[data-event]").forEach(el => {
+        el.onclick = () => openEvent(el.dataset.event);
+      });
     }
 
     function renderTable() {
@@ -594,33 +823,33 @@
       let rows = visibleEvents().filter(e =>
         (e.name + e.loc + e.note).toLowerCase().includes(q)
       );
+      if (sortMode === "window") rows = rows.filter(inWindow);
       if (sortMode === "org") rows.sort((a,b) => a.org.localeCompare(b.org) || a.start.localeCompare(b.start));
       else if (sortMode === "de") rows.sort((a,b) => Number(inGermany(b.loc)) - Number(inGermany(a.loc)) || a.start.localeCompare(b.start));
       else rows.sort((a,b) => a.start.localeCompare(b.start));
-      document.getElementById("tableBody").innerHTML = rows.map(e => `<tr class="clickable" data-url="${e.url}">
+      document.getElementById("tableBody").innerHTML = rows.map(e => `<tr class="clickable" data-event="${e.id}">
         <td>${fmt(parse(e.start))}–${fmt(parse(e.end))}</td>
         <td><strong>${e.name}</strong><div class="tiny muted">${e.note}</div></td>
         <td>${e.loc}</td>
-        <td>${ORGS.find(o => o.id === e.org).label}</td>
-        <td>${e.status === "confirmed" ? '<span class="badge ok">bestätigt</span>' : '<span class="badge typ">typisch</span>'}</td>
-        <td>${e.rel === "hoch" ? '<span class="badge bad">hoch</span>' : '<span class="badge warn">mittel</span>'}</td>
+        <td>${orgLabel(e.org)}</td>
+        <td>${statusBadge(e)}</td>
+        <td>${relBadge(e)}</td>
       </tr>`).join("");
       document.querySelectorAll("#tableBody tr").forEach(tr => {
-        tr.onclick = () => window.open(tr.dataset.url, "_blank", "noopener");
+        tr.onclick = () => openEvent(tr.dataset.event);
       });
     }
 
     function renderStats() {
       document.getElementById("nEvents").textContent = EVENTS.length;
       document.getElementById("nConfirmed").textContent = EVENTS.filter(e => e.status === "confirmed").length;
-      document.getElementById("nJunJul").textContent = EVENTS.filter(e => overlaps(parse(e.start), parse(e.end), parse("2027-06-01"), parse("2027-07-31"))).length;
+      document.getElementById("nWindow").textContent = EVENTS.filter(inWindow).length;
       document.getElementById("nDE").textContent = EVENTS.filter(e => inGermany(e.loc)).length;
     }
 
     function refresh() {
       renderFilters();
-      renderMonth("calJune", 2027, 6);
-      renderMonth("calJuly", 2027, 7);
+      renderCalendars();
       renderSelection();
       renderScores();
       renderGantt();
@@ -628,6 +857,12 @@
       renderStats();
     }
 
+    document.querySelectorAll("header .tabs [data-tab]").forEach(btn => {
+      btn.onclick = () => showTab(btn.dataset.tab);
+    });
+    document.querySelectorAll("#monthTabs [data-month]").forEach(btn => {
+      btn.onclick = () => { calMonth = btn.dataset.month; renderCalendars(); };
+    });
     document.getElementById("analyzeBtn").onclick = refresh;
     document.getElementById("startDate").onchange = refresh;
     document.getElementById("duration").onchange = refresh;
@@ -647,6 +882,11 @@
         renderTable();
       };
     });
+    document.getElementById("modalClose").onclick = closeModal;
+    document.getElementById("modalBackdrop").onclick = ev => {
+      if (ev.target.id === "modalBackdrop") closeModal();
+    };
+    document.addEventListener("keydown", ev => { if (ev.key === "Escape") closeModal(); });
 
     refresh();
   </script>
